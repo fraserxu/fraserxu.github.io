@@ -1,0 +1,3886 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+ <title>Xu Fraser</title>
+ <link href="http://xvfeng.me/atom.xml" rel="self"/>
+ <link href="http://xvfeng.me/"/>
+ <updated>2013-09-13T00:46:25+08:00</updated>
+ <id>http://xvfeng.me</id>
+ <author>
+   <name>Xu Fraser</name>
+ </author>
+ 
+ 
+ <entry>
+   <title>在Express项目中使用Handlebars模板引擎</title>
+   <link href="http://xvfeng.me/posts/Using-Handlebarsjs-with-Expressjs"/>
+   <updated>2013-09-12T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/Using-Handlebarsjs-with-Expressjs</id>
+   <content type="html">&lt;p&gt;最近在用Expressjs做一个项目，前后端都用它来完成。自己之前有用过Express一段时间，但是大部分都是用它来编写Restful的API,而没有真正用它所提供的前端页面渲染功能。&lt;/p&gt;
+
+&lt;p&gt;所以严格意义来讲这是第一次完整的项目。开始做之后就遇到了一些需要做出决定的地方。众所周知，Express的默认模板引擎是Jade.我在之前学习Express的时候，因为它是默认的引擎，所以有接触和使用过一段时间，感觉也还行。Jade在编写页面时所提供的嵌套功能比较实用，可以节省很大的代码量。&lt;/p&gt;
+
+&lt;blockquote&gt;&lt;p&gt;Jade is a high performance template engine heavily influenced by Haml and implemented with JavaScript for node. For discussion join the Google Group.&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;p&gt;上面是Jade Github所在页面的描述。可以得知它是一个注重性能，受Hamle影响，并特别针对Nodejs而编写的前端模板引擎。&lt;/p&gt;
+
+&lt;p&gt;我们先来看一下&lt;a href=&quot;http://jade-lang.com/&quot;&gt;Jade官方页面&lt;/a&gt;所给的例子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;doctype 5
+html(lang=&quot;en&quot;)
+  head
+    title= pageTitle
+    script(type='text/javascript').
+      if (foo) {
+        bar(1 + 5)
+      }
+  body
+    h1 Jade - node template engine
+    #container.col
+      if youAreUsingJade
+        p You are amazing
+      else
+        p Get on it!
+      p.
+        Jade is a terse and simple
+        templating language with a
+        strong focus on performance
+        and powerful features.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们可以看到，对比原生的HTML, Jade明显的一个优势就是标签数量上的减少。很多地方只要按照约定的缩进规则编写，完全可以避免使用原生HTML时标签忘记闭合的问题。同时Jade还提供了一些用于渲染判断的条件，可以根据数据来决定显示的内容等功能。&lt;/p&gt;
+
+&lt;p&gt;另外Jade的遍历数据生成页面功能，配合使用Json数据时特别好用，可以很大程度上减少代码量。&lt;/p&gt;
+
+&lt;p&gt;而另外一个原因，也是觉大多数人使用Jade的原因，可能都跟我一样，因为是Express框架自带的模板引擎，而它的作者也是鼎鼎有名的TJ.&lt;/p&gt;
+
+&lt;p&gt;看了标题也许会奇怪，既然Jade出自大神之手，而且简单易用，我为什么还要去选择Handlebarsjs呢？&lt;/p&gt;
+
+&lt;p&gt;同样我们看下官方描述:&lt;/p&gt;
+
+&lt;blockquote&gt;&lt;p&gt;Handlebars provides the power necessary to let you build semantic templates effectively with no frustration.&lt;/p&gt;
+
+&lt;p&gt;Mustache templates are compatible with Handlebars, so you can take a Mustache template, import it into Handlebars, and start taking advantage of the extra Handlebars features.&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;p&gt;作为一个模板引擎，它继承于著名的&lt;a href=&quot;http://mustache.github.io/&quot;&gt;Mustache&lt;/a&gt;模板引擎，具备了渲染页面的基础功能，并在其基础上进行拓展。&lt;/p&gt;
+
+&lt;p&gt;而另一个值得关注的是其作者&lt;a href=&quot;https://github.com/wycats&quot;&gt;Yehuda Katz&lt;/a&gt;,熟悉的朋友可能知道，他是著名JavaScript MVC框架&lt;a href=&quot;http://emberjs.com&quot;&gt;Emberjs&lt;/a&gt;代码的主要贡献者之一，而且在他的影响下也成为了Emberjs的默认模板引擎。而另外，Yehuda本身也是W3C规范制定小组的成员之一，其影响也不亚于TJ.&lt;/p&gt;
+
+&lt;p&gt;抛开框架的背景，我们来看看实际的应用场景。工具无非好坏，顺手才是王道。评断一个东西好坏关键还是看它是否满足自己的应用需求。&lt;/p&gt;
+
+&lt;p&gt;在开始做现在的项目之前，我已经用Jade完成了所有的功能，而且对于代码也还比较满意。但是在提交之后问题产生了。&lt;/p&gt;
+
+&lt;p&gt;因为这个项目不是我一个人在做，和我一起合作的同事之前没有接触过Jade,而且另外一位负责编写样式的同事对于JavaScript的模板引擎也不是很熟悉。这样一来，由于我的原因，导致团队成员之间无法协作。首先是JS开发人员需要时间来掌握和熟悉Jade语法，而另外一个更为严重，Jade语法的特性决定了其不利于配套CSS的书写(这点通过编译之后可以解决，但是一定程度上增加了工作量)。&lt;/p&gt;
+
+&lt;p&gt;于是我开始思考使用Jade是否正确。这里的两个问题是我必须面对的，而项目的进度不能因为这个受到影响，于是我开始考虑选择其他的模板引擎。&lt;/p&gt;
+
+&lt;p&gt;前面提到Emberjs用到了Handlebarsjs，所以在选择时我很容易就想到了它。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://handlebarsjs.com/&quot;&gt;Handlebars&lt;/a&gt;的官网给出了很多例子，而且上手也很容易，前后端通用,使用起来也很简单,这里就不对其使用多做介绍。&lt;/p&gt;
+
+&lt;p&gt;回到文章重点，因为Express并不提供对Handlerbarjs的直接支持，这样在使用时会面临一定问题。&lt;/p&gt;
+
+&lt;p&gt;要在Express中使用Handlerbars作为模板引擎，首先需要做出一下设置：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;安装Express, Handlebars, Consolidate:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; &quot;dependencies&quot;: {
+   &quot;express&quot;: &quot;3.x&quot;,
+   &quot;consolidate&quot;: &quot;0.4.0&quot;,
+   &quot;handlebars&quot;: &quot;1.0.7&quot;
+ }
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;配置选择引擎:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; // Use handlebars as template engine
+ app.engine(&quot;html&quot;, consolidate.handlebars);
+ app.set(&quot;view engine&quot;, &quot;html&quot;);
+ app.set(&quot;views&quot;, __dirname + &quot;/views&quot;);
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;注册模板：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; // Register partials
+ var partials = &quot;./views/partials/&quot;;
+ fs.readdirSync(partials).forEach(function (file) {
+   var source = fs.readFileSync(partials + file, &quot;utf8&quot;),
+     partial = /(.+)\.html/.exec(file).pop();
+     Handlebars.registerPartial(partial, source);
+ })
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;这样我们就可以在项目中使用Handlerbars来渲染页面。但是这样做后，我又遇到了另外一个问题。通过以上的方法我可以很容易的单独去加载某个页面。但是实际应用中，一般会有多个页面，而且多个页面之间会共享页面的header和footer部分。这样会导致重复编写很多代码。&lt;/p&gt;
+
+&lt;p&gt;在使用Jade是我们可以很容易的使用如下代码来实现页面模板功能：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;include layout
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;但是由于Express并非直接支持Handlerbars，所以要实现这个功能还需要一定的设置。在Handlerbars中,可以通过 来实现sub-template的功能。在查找了相关模块之后，我发现了&lt;a href=&quot;https://github.com/donpark/hbs&quot;&gt;hbs&lt;/a&gt;这个Express中间件。&lt;/p&gt;
+
+&lt;p&gt;这个模块使用起来很简单，可以完美解决我所遇到的问题。使用方法如下：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;安装模块：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; npm install hbs --save
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;设置模板：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; app.set('view engine', 'html');
+ app.engine('html', require('hbs').__express);
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;注册模板：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; var hbs = require('hbs');
+ hbs.registerHelper('helper_name', function(...) { ... });
+ hbs.registerPartial('partial_name', 'partial value');
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;如果需要注册整个文件夹，也可使用如下命令：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    var hbs = require('hbs');
+    hbs.registerPartials(__dirname + '/views/partials');
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样，我们就可以做到页面模板的重复利用，可以显著减少代码量。&lt;/p&gt;
+
+&lt;p&gt;而另外一个关键原因，在于Handlerbars对比Jade,语法更加简单。最重要的还是其普通元素同样使用原生HTML的写法，这样，对于编写样式的同事来讲就会更加友好。使用传统的方式编写样式，可以显著降低学习成本，从而加快项目进度。&lt;/p&gt;
+
+&lt;p&gt;而Handerbars所带来的一些其他功能，也会让项目的开发变得更加轻松。&lt;/p&gt;
+
+&lt;p&gt;下面附上我项目的基本结构，希望能对同样使用这种方案的同学有一定帮助。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;.
+├── app.js
+├── node_modules
+│   ├── express
+│   ├── handlebars
+│   ├── hbs
+│   ├── less-middleware
+│   ├── nodemon
+│   └── request
+├── package.json
+├── public
+│   ├── images
+│   ├── javascripts
+│   │   └── app.js
+│   ├── lib
+│   │   ├── font
+│   │   ├── js
+│   │   └── stylesheets
+│   └── stylesheets
+│       ├── style.css
+│       └── style.less
+├── routes
+│   ├── github.js
+│   └── index.js
+└── views
+    ├── index.hbs
+    ├── orgs.hbs
+    └── partials
+      ├── footer.hbs
+      └── header.hbs
+&lt;/code&gt;&lt;/pre&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>AngularJS表单验证</title>
+   <link href="http://xvfeng.me/posts/Form-validation-with-AngularJS"/>
+   <updated>2013-08-07T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/Form-validation-with-AngularJS</id>
+   <content type="html">&lt;p&gt;近期项目需求，很多地方需要进行表单验证。对比传统使用jQuery方法来验证，AngularJS的数据绑定的优势瞬间体现出来。&lt;/p&gt;
+
+&lt;p&gt;在AngularJS中已经有很多可供利用的表单验证directive.我们首先来看一看最常用的一些，然后开始尝试写一些自定义的验证方法。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;form name=&quot;form&quot;&amp;gt;
+  &amp;lt;label name=&quot;email&quot;&amp;gt;Your email&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&quot;email&quot; name=&quot;email&quot; ng-model=&quot;email&quot; placeholder=&quot;Email Address&quot; /&amp;gt;
+&amp;lt;/form&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们可以不费太多力气的使用AngulaJS完成客户端表单验证。现实开发中我们不能完全依靠客户端表单验证来保障web应用的安全，但是这样做的好处是可以提供表单状态的即时反馈。&lt;/p&gt;
+
+&lt;p&gt;为了使用表单验证，我们首先必须保证form元素拥有关联的 &lt;code&gt;name&lt;/code&gt; 属性。&lt;/p&gt;
+
+&lt;p&gt;所有的表单项都可以做一些简单的验证，例如最小长度，最大长度等等。这些都可以通过原生的HTML5属性来实现。&lt;/p&gt;
+
+&lt;p&gt;在实际开发中建议始终添加 &lt;code&gt;novalidate&lt;/code&gt; 标记到form标签上，这样可以保证在表单不合法的情况下阻止浏览器继续提交数据。&lt;/p&gt;
+
+&lt;p&gt;下面我们来看一下我们可以在 &lt;code&gt;input&lt;/code&gt; 表单域上添加的验证选项：&lt;/p&gt;
+
+&lt;h3&gt;Required 必填项&lt;/h3&gt;
+
+&lt;p&gt;为了验证某个表单项是否为空，只需要在表单域上添加一个HTML5标签: &lt;code&gt;required&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;input type=&quot;text&quot; required /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Minimum length 最小长度&lt;/h3&gt;
+
+&lt;p&gt;为了验证某个表单项的数据至少有 {number} 个字符，只需要在表单域上加入 &lt;code&gt;ng-minlength=&quot;{number}&quot;&lt;/code&gt; directive:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;input type=&quot;text&quot; ng-minlength=5 /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Maximum length 最大长度&lt;/h3&gt;
+
+&lt;p&gt;为了验证某个表单项等于或者少于一定数目字符串，添加 &lt;code&gt;ng-maxlength=&quot;{number}&quot;&lt;/code&gt; directive:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;input type=&quot;text&quot; ng-maxlength=20 /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Matches a pattern 正则匹配&lt;/h3&gt;
+
+&lt;p&gt;为了确保某个表单匹配某个正则表达式，使用如下AngularJS directive: &lt;code&gt;ng-pattern=&quot;/PATTERN/&quot;&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;input type=&quot;text&quot; ng-pattern=&quot;/a-zA-Z/&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Email地址&lt;/h3&gt;
+
+&lt;p&gt;为了验证表单项为email地址，只需设置 &lt;code&gt;input&lt;/code&gt; 的type为 &lt;code&gt;email&lt;/code&gt; 即可，例如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;input type=&quot;email&quot; name=&quot;email&quot; ng-model=&quot;user.email&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Number 数字&lt;/h3&gt;
+
+&lt;p&gt;为了验证某个表单项为数字，设置 &lt;code&gt;input&lt;/code&gt; 的type为 &lt;code&gt;number&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;input type=&quot;number&quot; name=&quot;age&quot; ng-model=&quot;user.age&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Url地址&lt;/h3&gt;
+
+&lt;p&gt;为了验证表单内容为合法url地址，设置 &lt;code&gt;input&lt;/code&gt; type 为 &lt;code&gt;url&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;input type=&quot;url&quot; name=&quot;homepage&quot; ng-model=&quot;user.weibo_url&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;自定义验证&lt;/h3&gt;
+
+&lt;p&gt;AngularJS同样也允许我们使用directive来添加自定义的验证方法。例如，我们需要验证username表单项的数据在数据库的唯一性。为了达成这个目的，我们需要完成一个directibe用于在表单数据发生变化时发起一次ajax请求。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var app = angular.module('validationExample', []);
+
+app.directive('ensureUnique', ['$http', function($http) {
+    return {
+        require: 'ngModel',
+        link: function(scope, ele, attrs, c) {
+            scope.$watch(attrs.ngModel, function() {
+                $http({
+                    method: 'POST',
+                    url: '/api/check/' + attrs.ensureUnique,
+                    data: {'field': attrs.ensureUnique}
+                }).success(function(data, status, headers, cfg) {
+                    c.$setValidity('unique', data.isUnique);
+                }).error(function(data, status, headers, cfg) {
+                    c.$setValidity('unique', false);
+                });
+            });
+        }
+    }
+}]);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;控制表单变量&lt;/h2&gt;
+
+&lt;p&gt;AngularJS通过DOM元素上设置一个表单，从而使我们可以很容易的获取到当前 &lt;code&gt;$scope&lt;/code&gt; 对象的属性。这样可以使我们即时的得到表单的最新数据。这里可供我们利用的属性如下：&lt;/p&gt;
+
+&lt;p&gt;注意这些属性是通过如下格式获取的：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;formName.inputFieldName.property
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Unmodified form 未改变表单&lt;/h3&gt;
+
+&lt;p&gt;返回一个布尔值，告诉我们用户是否修改了表单。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;formName.inputFieldName.$pristine
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Modified form 修改过的表单&lt;/h3&gt;
+
+&lt;p&gt;当且仅当用户实际修改过表单数据时返回一个布尔值。这个属性无视表单是否合法：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;formName.inputFieldName.$dirty
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Valid form 合法表单&lt;/h3&gt;
+
+&lt;p&gt;返回表单是否合法的布尔值。如果表单当前合法，则返回true:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;formName.inputFieldName.$valid
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Invalid form 非法表单&lt;/h3&gt;
+
+&lt;p&gt;返回表单是否合法的布尔值。如果表单不合法，则返回true:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;formName.inputFieldName.$invalid
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后两个属性在控制DOM元素隐藏或显示时特别有用。同时为某个特定表单设置class时也很方便。&lt;/p&gt;
+
+&lt;h3&gt;Errors 错误&lt;/h3&gt;
+
+&lt;p&gt;另外一个非常有用的属性是 &lt;code&gt;$error&lt;/code&gt; 对象。这个对象包含了某个特定表单所有的验证信息以及表单是否合法。可以通过如下语法获取到这些属性：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;formName.inputFieldName.$error
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果某个验证失败，则这个属性返回true,相反如果这个属性为false,则代表验证通过。&lt;/p&gt;
+
+&lt;h2&gt;添加样式&lt;/h2&gt;
+
+&lt;p&gt;AngularJS在处理表单时会自动为当前状态添加某些特定类名称。这些class属性和我们检查属性时的名称也很类似。&lt;/p&gt;
+
+&lt;p&gt;包括如下class:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;.ng-pristine {}
+.ng-dirty {}
+.ng-valid {}
+.ng-invalid {}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以上属性分别对应所检查表单项检查结果。&lt;/p&gt;
+
+&lt;p&gt;如果某个表单域非法，&lt;code&gt;ng-invalid&lt;/code&gt;就会添加到对应的元素上。可以为元素添加如下样式：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;input.ng-invalid {border: 1px solid red;}
+input.ng-valid {border: 1px solid green;}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;&lt;p&gt;未完待续..&lt;/p&gt;&lt;/blockquote&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>写给Web开发人员看的Nginx介绍</title>
+   <link href="http://xvfeng.me/posts/Nginx-for-developers"/>
+   <updated>2013-06-22T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/Nginx-for-developers</id>
+   <content type="html">&lt;p&gt;译者注：不知道其他开发者是否和我一样，参与或者写了很多Web项目，但是却没有真正的去完整的部署应用，很多时候都是交给ops即运维的同学帮忙来做。而作为一个有节操的开发者，我认为了解一些服务器方面的知识是很有必要的，读了这篇文章之后，自己对nginx也有了一个初步的认识，对自己很有帮助，不敢独享，遂译之。&lt;/p&gt;
+
+&lt;p&gt;如果你是一名Web开发人员，那么你很有可能听过&lt;a href=&quot;http://wiki.nginx.org/Main&quot;&gt;nginx&lt;/a&gt;(读音听起来像engine-x). Nginx是一款速度快，功能强大的http以及反向代理服务器，经过简单的配置之后即可以用来托管页面。&lt;/p&gt;
+
+&lt;p&gt;不幸的是，和很多其他系统管理工具一样，相关的原理教程和配置说明文档都很少。虽然官方提供了一个wiki,但是内容多且复杂，却没有真正的介绍那些你可能真正需要的东西。在自己纠结这个wiki一段时间之后，我终于掌握了使用nginx的一些基础知识，并把它们在这里与其他开发者分享出来，希望你们能够更加快速的去掌握这些知识。&lt;/p&gt;
+
+&lt;p&gt;下面进入正题。针对本教程，你需要一个VPS（虚拟主机），最好是刚刚建立的，这样可以避免与先前的配置产生冲突。&lt;/p&gt;
+
+&lt;h3&gt;初始化安装&lt;/h3&gt;
+
+&lt;p&gt;现在假设你已经拥有一个运行ubuntu的虚拟主机(比如说托管于 &lt;a href=&quot;https://www.digitalocean.com/&quot;&gt;digital ocean&lt;/a&gt;),配置好登录选项并更新好 &lt;code&gt;apt&lt;/code&gt; 之后，运行 &lt;code&gt;apt-get install nginx&lt;/code&gt; 安装nginx.在浏览器访问你的IP地址，你会看到页面显示“welcome to ngnix”信息。OK,一切正常。&lt;/p&gt;
+
+&lt;h3&gt;查找nginx目录&lt;/h3&gt;
+
+&lt;p&gt;在我们通过 &lt;code&gt;apt&lt;/code&gt; 安装完nginx后，它为我们提供了一个基本的结构，帮助我们迅速设置好配置文件。所有的nginx配置文件都在 &lt;code&gt;/etc/nginx&lt;/code&gt;下（译者注：Mac OS X环境下使用homebrew路径与linux有区别，文章结尾部分提供mac下解决方案），输入 &lt;code&gt;cd&lt;/code&gt; 进入该目录。你需要添加新配置选项的地方位于 &lt;code&gt;sites-enabled&lt;/code&gt; 文件夹。如果你打开这个文件夹，你会发现一个名为 &lt;code&gt;default&lt;/code&gt;
+的txt文档，打开后你就会找到nginx的配置选项以及 &amp;ldquo;welcome to nginx&amp;rdquo;欢迎选项的代码。接下来我们开始建立属于我们自己的配置文件用于显示一个页面。在sites-enabled目录下新建一个空白文件并命名为 &lt;code&gt;test&lt;/code&gt;,用你自己喜欢的文本编辑器进行编辑。&lt;/p&gt;
+
+&lt;blockquote&gt;&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt; 在该目录下会发现一个 &lt;code&gt;/etc/nginx/sites-available&lt;/code&gt; 的文件夹。这个文件夹一般在你需要建立和管理多个站点的时候非常有用，可以帮助你更好的组织不同的项目。你需要在这里添加你的nginx配置文案并将他们链接至 &lt;code&gt;sites-enabled&lt;/code&gt; 目录下。命令如下：&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code&gt;ln -s /etc/nginx/sites-available/dotcom /etc/nginx/sites-enabled/dotcom
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;只有在 &lt;code&gt;sites-enabled&lt;/code&gt; 目录下的配置文件才能够真正被用户访问。但是你同样可以将文件放在 &lt;code&gt;sites-available&lt;/code&gt; 目录下用来存档或者生成链接。&lt;/p&gt;
+
+&lt;h3&gt;配置静态服务器&lt;/h3&gt;
+
+&lt;p&gt;Nginx配置文件有自己的格式，好消息是文件的格式相当简单，看起来特别像CSS文件，先指定变量名，然后在花括号内编写指令。最顶层是 &lt;code&gt;server&lt;/code&gt; ,代码为：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;server {
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在花括号内，我们仍然可以像书写CSS一样，键值对后接分号，或者说更像sass的语法，并添加嵌套代码块。后面两种风格的代码我们都会用到，也很容易理解。&lt;/p&gt;
+
+&lt;p&gt;这里可以添加的键值对和代码块（在本教程的后面我们把它称为指令）有很多种，你可以转到&lt;a href=&quot;http://wiki.nginx.org/DirectiveIndex&quot;&gt;官方文档&lt;/a&gt;去具体查看。对于基本的服务器设置其实只用掌握一些重要的指令即可。我会给后面的每个指令链接官方的ngnix文档。官方文档是你深入理解nginx的唯一渠道，因此你必须掌握如何更好的去使用它。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://wiki.nginx.org/HttpCoreModule#listen&quot;&gt;listen&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;声明服务器监听的端口号。如果你了解&lt;a href=&quot;http://rubyonrails.org/&quot;&gt;rails&lt;/a&gt;,你一定知道本地服务器的默认端口是3000. &lt;a href=&quot;http://roots.cx/&quot;&gt;Roots&lt;/a&gt;运行在1111端口。SSL在443端口。互联网的默认端口是80,因此在url中未定义端口的话一般默认为80。因为你很有可能是去运行一个线上的服务器，因此最好定义成80端口。代码如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;server {
+    listen 80;    
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意默认端口严格来讲不是必要的，但是为了能够保证你对整个流程足够了解最好加上。完成了第一步，我们进入下一步server_name.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://wiki.nginx.org/HttpCoreModule#server_name&quot;&gt;server_name&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;server_name主要用来匹配url地址。任意请求通过nginx时，它会查看url并寻找 &lt;code&gt;server_name&lt;/code&gt; 片段。如果你的站点地址为 &lt;code&gt;http://xvfeng.me&lt;/code&gt;, 那么你的 &lt;code&gt;server_name&lt;/code&gt; 应当也为 &lt;code&gt;xvfeng.me&lt;/code&gt; . 如果你在域名解析时使用了A记录并通过服务器指向 &lt;code&gt;http://snargles.com&lt;/code&gt; , 你可以添加另外一个 &lt;code&gt;server&lt;/code&gt; 代码，将 &lt;code&gt;server_name&lt;/code&gt; 指向 &lt;code&gt;snargles.com&lt;/code&gt;, 这段代码就会匹配来自于这个域名的请求。&lt;/p&gt;
+
+&lt;p&gt;这个特性非常强大。这意味着你可以在单个nginx配置文件里托管无数个站点，甚至包括不同域名的网站。你需要做的只是将设置A记录并指向虚拟机所在的IP, 之后设置其他的nginx服务器配置。&lt;/p&gt;
+
+&lt;p&gt;针对 &lt;code&gt;server_name&lt;/code&gt; 还有两点值得关注。首先是你可以设置子域名。如果你想匹配 &lt;code&gt;http://test.example.com&lt;/code&gt; ,设置相当简单，甚至还可以指向一个完全不同的应用。第二点，你可以使用通配符, 即 &lt;code&gt;*&lt;/code&gt; 或者正则来匹配路由。这个功能绝对强大。下面我们简单的配置一下server_name到 &lt;code&gt;example.com&lt;/code&gt; .&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;server {
+    listen 80;
+    server_name example.com;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Nice.接下来再加一些配置就可以让服务器运转了。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://wiki.nginx.org/HttpCoreModule#root&quot;&gt;root&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;这个是托管静态站点最关键的部分。如果你只是想用它来托管一些html和css文件，root部分要定义的就是这些文件存放的路径。我喜欢把文件放在 &lt;code&gt;/var/www&lt;/code&gt; 目录下，因此我们在这里建立一个文件夹。使用 &lt;code&gt;mkdir&lt;/code&gt; 创建 &lt;code&gt;/var/www/example&lt;/code&gt; 目录,建立一个空白的 &lt;code&gt;index.html&lt;/code&gt; 文件，随便添加一些段落输出hello world之类的内容。代码如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;server {
+    listen 80;
+    server_name example.com;
+    root /var/www/example;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本变量设置完毕，下一步配置路由。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://wiki.nginx.org/HttpCoreModule#location&quot;&gt;location&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Location接受两个参数，一个字符串或者正则和一段代码。字符串或者正则用于匹配某个特定目录。如果你想让用户在访问 &lt;code&gt;example.com/whaterver&lt;/code&gt; 时访问某个特定页面，你需要将 &lt;code&gt;whatever&lt;/code&gt; 设置为uri地址。在这里我们只需要访问root目录，因此只需要加上 &lt;code&gt;/&lt;/code&gt; 即可，内容暂时为空，后面再做解释。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;server {
+    listen 80;
+    server_name example.com;
+    root /var/www/example;
+
+    location / {
+
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;第一参数可以有很多种写法，你可以参考上面给出的链接。在以上区块内，我们需要路由指向结果页面。注意 &lt;code&gt;/&lt;/code&gt; 会匹配所有的url地址，因为在这里它被解释为一个正则。如果你只想匹配某个准确的字符串，只需要在前面加上一个等号，写法如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;location = / { ... }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在我们需要完成之前的代码。我们可以在区块内添加另外一段指令，用于加载名为 &lt;code&gt;try_files&lt;/code&gt; 的文件。Try fiels接受了一组文件名或者正则，用于在根目录下查找，并会加载查找到的第一个结果。对于我们的静态服务器来讲，我们希望找到一个在 &lt;code&gt;/&lt;/code&gt; 之后紧跟着whatever的文件，例如 &lt;code&gt;whatever.html&lt;/code&gt;. 如果在斜线后面没有任何内容，则会寻找 &lt;code&gt;index.html&lt;/code&gt;.
+在上面给出的文档链接种你可以找到更多的关于如何设置该选项的吸纳关系介绍，这里我们只写一些简单的配置：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;server {
+    listen 80;
+    server_name example.com;
+    root /var/www/example;
+
+    location / {
+        try_files $url $url/ /index.html;    
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;你可能会奇怪上面的 &lt;code&gt;$url&lt;/code&gt; 是从哪里来的？其实是nginx所提供的。每次有请求时，nginx会生成&lt;a href=&quot;http://wiki.nginx.org/NginxHttpCoreModule#Variables&quot;&gt;一系列&lt;/a&gt;变量，这些变量存储了请求的相关信息。这里的&lt;a href=&quot;http://wiki.nginx.org/NginxHttpCoreModule#.24uri&quot;&gt;uri&lt;/a&gt;就是我们将要了解的内容之一。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;来自 &lt;code&gt;http://example.com&lt;/code&gt; 的请求进入。&lt;/li&gt;
+&lt;li&gt;nginx找到server片段代码，其中 &lt;code&gt;server_name&lt;/code&gt; 为 &lt;code&gt;example.com&lt;/code&gt; ，并使用它来处理请求&lt;/li&gt;
+&lt;li&gt;nginx匹配任意请求。因为这里的 &lt;code&gt;/&lt;/code&gt; 会匹配根域名下的任意内容。&lt;/li&gt;
+&lt;li&gt;在匹配到的location代码种，nginx开始试图加载一个文件。首先寻找一个未命名的文件，因为这里的url匹配的就是没有名称的文件，所以无法找到。接着开始查找未命名的目录，结果还是找不到。最后开始查找并加载根目录下 &lt;code&gt;/index.html&lt;/code&gt; 。&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;接下来想象一下如果你添加一个名为 &lt;code&gt;test.html&lt;/code&gt; 的文件到根目录下并访问 &lt;code&gt;http://example.com/test.html&lt;/code&gt; .自己试一下你就知道了。&lt;/p&gt;
+
+&lt;p&gt;你可以任意的去尝试改变这里的配置环境。例如，在&lt;a href=&quot;http://carrot.is/&quot;&gt;carrot.is&lt;/a&gt;这个网站里，但用户访问某个文件并且没有加上 &lt;code&gt;.html&lt;/code&gt; 后缀时，try_files同样会查找 &lt;code&gt;$uri.html&lt;/code&gt; 并匹配相应结果。因此在你访问 &lt;code&gt;http://carrot.is.about&lt;/code&gt; 和 &lt;code&gt;http://carrot.is/about.html&lt;/code&gt; 时你会得到相同的文件。你可以充分发挥你的想象力去设置你的配置文件。&lt;/p&gt;
+
+&lt;h3&gt;启动服务&lt;/h3&gt;
+
+&lt;p&gt;总结一下我们所做的事情。首先添加了 &lt;code&gt;server&lt;/code&gt; 选项，在nginx运行时，会查找 &lt;code&gt;/etc/sites-enabled&lt;/code&gt; 目录下的所有配置文件用于显示对应内容。但是请等一下，你可能无法马上得到结果－因为nginx并不知道你所作的这些改动。为了让nginx真正读取新配置文件，你需要重启服务器，运行以下命令：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;service nginx reload
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;&lt;p&gt;注意：这里的 &lt;code&gt;service&lt;/code&gt; 命令实际上是调用了配置文件里内容，这些都在使用 &lt;code&gt;apt&lt;/code&gt; 时被生成。这里调用的实际上是 &lt;code&gt;/etc/init.d/nginx reload&lt;/code&gt; .&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;p&gt;接下来就是访问服务器IP地址便可得到你想要的页面。&lt;/p&gt;
+
+&lt;p&gt;Mac OS X下参考文档：&lt;a href=&quot;http://learnaholic.me/2012/10/10/installing-nginx-in-mac-os-x-mountain-lion/&quot;&gt;Installing Nginx in Mac OS X Mountain Lion With Homebrew&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;原文链接： &lt;a href=&quot;http://carrot.is/coding/nginx_introduction&quot;&gt;http://carrot.is/coding/nginx_introduction&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;转载请注明出处： &lt;a href=&quot;http://xvfeng.me/posts/Nginx-for-developers/&quot;&gt;http://xvfeng.me/posts/Nginx-for-developers/&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>(譯)深入理解Express.js</title>
+   <link href="http://xvfeng.me/posts/understanding-expressjs"/>
+   <updated>2013-06-07T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/understanding-expressjs</id>
+   <content type="html">&lt;p&gt;本文針對那些對&lt;a href=&quot;http://nodejs.org&quot;&gt;Node.js&lt;/a&gt;有一定了解的讀者。假設你已經知道如何運行Node代碼，使用npm安裝依賴模塊。但我保證，你並不需要是這方面的專家。本文針對的是Express 3.2.5版本，以介紹相關概念爲主。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://expressjs.org&quot;&gt;Express.js&lt;/a&gt;這麼描述自己：&amp;ldquo;輕量靈活的node.js Web應用框架&amp;rdquo;。它可以幫助你快速搭建web應用。如果你使用過Ruby裏的&lt;a href=&quot;http://www.sinatrarb.com/&quot;&gt;Sinatra&lt;/a&gt;,那麼相信你對這個也會很快就能熟悉。&lt;/p&gt;
+
+&lt;p&gt;和其他web框架一樣，Express隱藏了代碼背後的祕密，然後告訴你：&amp;ldquo;別擔心，你不用去理解這個部分&amp;rdquo;。它來幫你解決這些問題，所以你不用去爲這個而煩惱，只用將重心集中到代碼上。換句話說，它有某些魔法！&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://expressjs.com/applications.html&quot;&gt;Express的wiki裏介紹了一些它的使用者&lt;/a&gt;，其中就有很多知名的公司: MySpace, Klout.&lt;/p&gt;
+
+&lt;p&gt;但是&lt;a href=&quot;http://shapeshed.com/all-magic-comes-with-a-price/&quot;&gt;擁有魔力是需要付出代價的&lt;/a&gt;，你可能根本就不知道它的工作原理。正如駕駛一輛汽車，我可以很好的駕馭它但是可能不理解爲什麼汽車可以正常工作，但是我最好知道這些東西。如果車壞掉怎麼辦？如果你想最大程度的去發揮它的性能？如果你對知識有無限的渴望並想去弄清它？&lt;/p&gt;
+
+&lt;p&gt;那麼我麼首先從理解Express的最底層-Node開始。&lt;/p&gt;
+
+&lt;h2&gt;底層：Node HTTP服務器&lt;/h2&gt;
+
+&lt;p&gt;Node中有&lt;a href=&quot;http://nodejs.org/api/http.html&quot;&gt;HTTP模塊&lt;/a&gt;, 它將搭建一個web服務器的過程抽象出來。你可以這樣使用:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;// 引入所需模塊
+var http = require(&quot;http&quot;);
+
+// 建立服務器
+var app = http.createServer(function(request, response) {
+    response.writeHead(200, {
+        &quot;Content-Type&quot;: &quot;text/plain&quot;    
+    });
+    response.end(&quot;Hello world!\n&quot;);
+});
+
+// 啓動服務器
+app.listen(1337, &quot;localhost&quot;);
+console.log(&quot;Server running at http://localhost:1337/&quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;運行這個程序(假設文件名爲 &lt;code&gt;app.js&lt;/code&gt; ,運行 &lt;code&gt;node app.js&lt;/code&gt; )，你會得到&amp;ldquo;Hello world!&amp;rdquo; 在瀏覽器訪問 &lt;code&gt;localhost:1337&lt;/code&gt; ，你會得到同樣的結果。你也可以嘗試訪問其他地址，如 &lt;code&gt;localhost:1337/whatever&lt;/code&gt; ，結果仍然會一樣。&lt;/p&gt;
+
+&lt;p&gt;分解以上代碼來看。&lt;/p&gt;
+
+&lt;p&gt;第一行使用 &lt;code&gt;require&lt;/code&gt; 函數引入Node內置模塊 &lt;code&gt;http&lt;/code&gt; 。然後存入名爲 &lt;code&gt;http&lt;/code&gt; 的變量中。如果你要了解更多關於require函數的知識，參考&lt;a href=&quot;http://docs.nodejitsu.com/articles/getting-started/what-is-require&quot;&gt;Nodejitsu&lt;/a&gt;的文檔。&lt;/p&gt;
+
+&lt;p&gt;然後我們使用 &lt;code&gt;http.createServer&lt;/code&gt; 將服務器保存至 &lt;code&gt;app&lt;/code&gt; 變量。它將一個函數作爲參數監聽請求。稍後將會詳細介紹它。&lt;/p&gt;
+
+&lt;p&gt;最後我們要做的就是告訴服務器監聽來自1337端口的請求，之後輸出結果。然後一切完成。&lt;/p&gt;
+
+&lt;p&gt;好的，回到request請求處理函數。這個函數相當重要。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;request方法&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在開始這個部分之前，我事先聲明這裏所涉及的HTTP相關知識與學習Express本身沒有太大關係。如果你感興趣，可以查看&lt;a href=&quot;http://nodejs.org/api/http.html&quot;&gt;HTTP模塊文檔&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;任何時候我們向服務器發起請求，request方法將會被調用。如果你不信，你可以 &lt;code&gt;console.log&lt;/code&gt; 將結果打印出來。你會發現每次請求一個頁面時它都會出來。&lt;/p&gt;
+
+&lt;p&gt; &lt;code&gt;request&lt;/code&gt; 是來自客戶端的請求。在很多應用中，你可能會看到它的縮寫 &lt;code&gt;req&lt;/code&gt; 。仔細看代碼。我們修改代碼如下:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var app = http.createServer(function(request, response) {
+
+    // 創建answer變量
+    var answer = &quot;&quot;;
+    answer += &quot;Request URL: &quot; + request.url + &quot;\n&quot;;
+    answer += &quot;Request type: &quot; + request.method + &quot;\n&quot;;
+    answer += &quot;Request headers: &quot; + JSON.stringify(request.headers) + &quot;\n&quot;;
+
+    // 返回結果
+    response.writeHead(200, {&quot;Content-Type&quot;: &quot;text/plain&quot; });
+    response.end(answer);
+
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;重啓服務器並刷新 &lt;code&gt;localhsot:1337&lt;/code&gt; .你會發現，每次訪問一個URL，就會發起一次GET請求，並會得到一堆類似用戶代理或者一些其他的更加複雜的HTTP相關信息。如果你訪問 &lt;code&gt;localhost:1337/what_is_fraser&lt;/code&gt; , 你會看到request的地址發生了變化。如果你使用不同的瀏覽器訪問，用戶代理也會跟着改變，如果你使用POST請求，request的方法也很改變。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;response&lt;/code&gt; 是另外一個部分。正如 &lt;code&gt;request&lt;/code&gt; 被縮寫爲 &lt;code&gt;req&lt;/code&gt; ，&lt;code&gt;response&lt;/code&gt; 同樣被簡寫爲 &lt;code&gt;res&lt;/code&gt; 。每次response你都會得到對應的返回結果，之後你便可以通過調用 &lt;code&gt;response.end&lt;/code&gt; 來結束。實際上最終你還是要執行這個方法的, 甚至在&lt;a href=&quot;http://nodejs.org/api/http.html#http_response_end_data_encoding&quot;&gt;node&lt;/a&gt;的文檔裏也是這麼描述的。這個方法完成了真正的數據傳輸部分。你可以建立一個服務器並不調用 &lt;code&gt;req.end&lt;/code&gt; 方法，它就會永遠存在。&lt;/p&gt;
+
+&lt;p&gt;在你返回結果之前，你也可以填寫一下header頭部部分。我們的例子裏是這麼寫的:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;response.writeHead(200, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;這個步驟主要完成兩件事情。第一，發送&lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_HTTP_status_codes&quot;&gt;HTTP狀態碼&lt;/a&gt;，表示請求成功。其次，它設置了返回的頭部信息。這裏表示我們要返回的是純文本格式的內容。我們也可以返回類似JSON或者HTML格式的內容。&lt;/p&gt;
+
+&lt;p&gt;未完待續。。。&lt;/p&gt;
+
+&lt;p&gt;// 接上回&lt;/p&gt;
+
+&lt;p&gt;看了上面的之後，你可能會立馬開始利用它來寫api了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var http = require(&quot;http&quot;);
+
+http.createServer(function(req, res) {
+
+    // Homepage
+    if(req.url == &quot;/&quot;) {
+        res.writeHead(200, { &quot;Content-Type&quot;: &quot;text/html&quot; });
+        res.end(&quot;Welcome to the homepage!&quot;);
+    }
+
+    // About page
+    else if (req.url == &quot;/about&quot;) {
+        res.writeHead(200, { &quot;Content-Type&quot;: &quot;text/html&quot; });
+        res.end(&quot;Welcome to the about page!&quot;);
+    }
+
+    // 404'd!
+    else {
+        res.writeHead(404, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+        res.end(&quot;404 error! File not found.&quot;);
+    }
+
+}).listen(1337, &quot;localhost&quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;你可以選擇優化代碼，讓它變得更整潔。也可以向&lt;a href=&quot;https://github.com/isaacs/npm-www#design-philosophy&quot;&gt;npm.org&lt;/a&gt;的那幫傢伙一樣用原生的Node來編寫。但是你也可以選擇去創建一個框架。這就是Sencha所做的，並把這個框架稱爲 - Connect.&lt;/p&gt;
+
+&lt;h2&gt;中間件: Connect&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.senchalabs.org/connect/&quot;&gt;Connect&lt;/a&gt;是Nodejs的中間件。可能你現在還並不太理解什麼是中間件(middleware)，別擔心，我馬上會進行詳細解釋。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;一段Connect代碼&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;假如我們想要編寫和上面一樣的代碼，但是這次我們要使用Connect.別忘記安裝Connect模塊(&lt;code&gt;npm install&lt;/code&gt;)。完成之後，代碼看起來非常相似。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;// 引入所需模塊
+var connect = require(&quot;connect&quot;);
+var http = require(&quot;http&quot;);
+
+// 建立app
+var app = connect();
+
+// 添加中間件
+app.use(function(request, response) {
+    response.writeHead(200, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+    response.end(&quot;Hello world!\n&quot;);
+});
+
+// 啓動應用
+http.createServer(app).listen(1337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;下面分解這段代碼來看。&lt;/p&gt;
+
+&lt;p&gt;首先我們分別引入了Connect和Node HTTP模塊。&lt;/p&gt;
+
+&lt;p&gt;接下來和之前一樣聲明 &lt;code&gt;app&lt;/code&gt; 變量，但是在創建服務器時，我們調用了 &lt;code&gt;connect()&lt;/code&gt;.這有是如何工作的？&lt;/p&gt;
+
+&lt;p&gt;我們添加了一個中間件，實際上就是一個函數。傳入 &lt;code&gt;app.use&lt;/code&gt; ，幾乎和上面使用request方法寫法一樣。實際上代碼是從上面粘貼過來的。&lt;/p&gt;
+
+&lt;p&gt;之後我們建立並啓動服務器。 &lt;code&gt;http.createServer&lt;/code&gt; 接收函數作爲參數。沒錯，&lt;code&gt;app&lt;/code&gt; 實際上也是一個函數。這是一個Connect提供的函數，它會查找代碼並自上而下執行。&lt;/p&gt;
+
+&lt;p&gt;(你可能會看見其他人使用 &lt;code&gt;app.listen(1337)&lt;/code&gt;, 這實際上只是將 &lt;code&gt;http.createServer&lt;/code&gt; 返回一個promise對象。 再Connect和Express中都是一樣的原理。)&lt;/p&gt;
+
+&lt;p&gt;接下來解釋什麼是中間件(middleware).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;什麼是中間件?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;首先推薦閱讀&lt;a href=&quot;http://stephensugden.com/middleware_guide/&quot;&gt;Stephen Sugden對於Connect中間件的描述&lt;/a&gt;,比我講的更好。如果你不喜歡我的解釋，那就去看看。&lt;/p&gt;
+
+&lt;p&gt;還記得之前的request方法？每個中間件都是一個handler.依次傳入request, response, next三個參數。&lt;/p&gt;
+
+&lt;p&gt;一個最基本的中間件結構如下:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;function myFunMiddleware(request, response, next) {
+    // 對request和response作出相應操作
+    // 操作完畢後返回next()即可轉入下個中間件
+    next();
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;當我們啓動一個服務器，函數開始從頂部一直往下執行。如果你想輸出函數的執行過程，添加一下代碼:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var connect = require(&quot;connect&quot;);
+var http = require(&quot;http&quot;);
+var app = connect();
+
+// log中間件
+app.use(function(request, response, next) {
+    console.log(&quot;In comes a &quot; + request.method + &quot; to &quot; + request.url);
+    next();
+});
+
+// 返回&quot;hello world&quot;
+app.use(function(request, response, next) {
+    response.writeHead(200, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+    response.end(&quot;Hello World!\n&quot;);
+});
+
+http.createServer(app).listen(1337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果你啓動應用並訪問 &lt;code&gt;localhost:1337&lt;/code&gt;，你會看到服務器可以log出相關信息。&lt;/p&gt;
+
+&lt;p&gt;有一點值得注意，任何可以在Node.js下執行的代碼都可以在中間件執行。例如上面我們所使用的 &lt;code&gt;req.method&lt;/code&gt; 方法。&lt;/p&gt;
+
+&lt;p&gt;你當然可以編寫自己的中間件，但是也不要錯過Connect的一些很cool的&lt;a href=&quot;https://github.com/senchalabs/connect/wiki&quot;&gt;第三方中間件&lt;/a&gt;。下面我們移除自己的log中間件，使用Connect內置方法。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var connect = require(&quot;connect&quot;);
+var http = require(&quot;http&quot;);
+var app = connect();
+
+app.use(connect.logger());
+// 一個有趣的事實：connect.logger返回一個函數
+
+app.use(function(request, response) {
+    response.writeHead(200, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+    response.end(&quot;Hello world!\n&quot;);
+});
+
+http.createServer(app).listen(1337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;跳轉至瀏覽器並訪問 &lt;code&gt;localhost:1337&lt;/code&gt; 你會得到同樣的結果。&lt;/p&gt;
+
+&lt;p&gt;很快有人就會想使用上面的中間件組合起來創建一個完整應用。代碼如下:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var connect = require(&quot;connect&quot;);
+var http = require(&quot;http&quot;);
+var app = connect();
+
+app.use(connect.logger());
+
+// Homepage
+app.use(function(request, response, next) {
+    if (request.url == &quot;/&quot;) {
+        response.writeHead(200, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+        response.end(&quot;Welcome to the homepage!\n&quot;);
+        // The middleware stops here.
+    } else {
+        next();
+    }
+});
+
+// About page
+app.use(function(request, response, next) {
+    if (request.url == &quot;/about&quot;) {
+        response.writeHead(200, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+        response.end(&quot;Welcome to the about page!\n&quot;);
+        // The middleware stops here.
+    } else {
+        next();
+    }
+});
+
+// 404'd!
+app.use(function(request, response) {
+    response.writeHead(404, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+    response.end(&quot;404 error!\n&quot;);
+});
+
+http.createServer(app).listen(1337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;“這個看起來不太好看!我要自己寫框架！”&lt;/p&gt;
+
+&lt;p&gt;某些人看了Connect的代碼之後覺得，“這個代碼可以更簡單”。於是他們創造了Express.（事實上他們好像直接盜用了&lt;a href=&quot;http://www.sinatrarb.com/&quot;&gt;Sinatra&lt;/a&gt;.）&lt;/p&gt;
+
+&lt;h2&gt;最頂層: Express&lt;/h2&gt;
+
+&lt;p&gt;文章進入第三部分，我們開始真正進入Express.&lt;/p&gt;
+
+&lt;p&gt;正如Connect拓展了Node, Express拓展Connect.代碼的開始部分看起來和在Connect中非常類似：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var express = require(&quot;express&quot;);
+var http = require(&quot;http&quot;);
+var app = express();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;結尾部分也一樣:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;http.createServer(app).listen(1337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;中間部分纔是不一樣的地方。Connect爲我們提供了中間件，Express則爲我們提供了另外三個優秀的特性： 路由分發，請求處理，視圖渲染。首先從如有開始看。&lt;/p&gt;
+
+&lt;h3&gt;特性一：路由&lt;/h3&gt;
+
+&lt;p&gt;路由的功能就是處理不同的請求。在上面的很多例子中，我們分別有首頁，關於和404頁面。我們是通過
+ &lt;code&gt;if&lt;/code&gt; 來判斷並處理不同請求地址。&lt;/p&gt;
+
+&lt;p&gt; 但是Express卻可以做的更好。Express提供了&amp;ldquo;routing&amp;rdquo;這個東西，也就是我們所說的路由。我覺得可讀性甚至比純文字還要好。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var express = require(&quot;express&quot;);
+var http = require(&quot;http&quot;);
+var app = express();
+
+app.all(&quot;*&quot;, function(request, response, next) {
+    response.writeHead(404, { &quot;Content-Type&quot;: &quot;text/plain&quot; });
+    next();
+});
+
+app.get(&quot;/&quot;, function(request, response) {
+    response.end(&quot;Welcome to the homepage!&quot;);
+});
+
+app.get(&quot;/about&quot;, function(request, response) {
+    response.end(&quot;Welcome to the about page!&quot;);
+});
+
+app.get(&quot;*&quot;, function(request, response) {
+    response.end(&quot;404!&quot;);
+});
+
+http.createServer(app).listen(1337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;簡單的引入相關模塊之後，我們立即調用 &lt;code&gt;app.all&lt;/code&gt;處理所有請求。寫法看起來也非常像中間件不是嗎？&lt;/p&gt;
+
+&lt;p&gt;代碼中的 &lt;code&gt;app.get&lt;/code&gt; 就是Express提供的路由系統。也可以是 &lt;code&gt;app.post&lt;/code&gt; 來處理POST請求，或者是PUT和任何的HTTP請求方式。第一個參數是路徑，例如 &lt;code&gt;/about&lt;/code&gt; 或者 &lt;code&gt;/&lt;/code&gt;。第二個參數類似我們之前所見過的請求handler。引用&lt;a href=&quot;http://expressjs.com/api.html#app.VERB&quot;&gt;Expess文檔的內容&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;&lt;p&gt;這些請求handler和中間件一樣，唯一的區別是這些回調函數會調用 &lt;code&gt;next('route')&lt;/code&gt; 從而能夠繼續執行剩下的路由回調函數。這種機制&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;p&gt;簡單說來，它們和我們之前提過的中間件是一樣，只不過是一些函數而已。&lt;/p&gt;
+
+&lt;p&gt;這些路由也可以更加靈活，看起來是這樣：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;app.get(&quot;/hello/:who&quot;, function(req, res) {
+    res.end(&quot;Hello, &quot; + req.params.who + &quot;.&quot;);    
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;重啓服務器並在瀏覽器訪問 &lt;code&gt;localhost:1337/hello/animelover69&lt;/code&gt; 你會得到如下信息：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Hello, animelover69.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://expressjs.com/api.html#app.VERB&quot;&gt;這些文檔&lt;/a&gt;演示了如何使用正則表達式，可以使得路由更加靈活。如果只是單從概念理解來講，我說的已經足夠了。&lt;/p&gt;
+
+&lt;p&gt;但是還有更加值得我們去關注的。&lt;/p&gt;
+
+&lt;h3&gt;特性二：請求處理 request handling&lt;/h3&gt;
+
+&lt;p&gt;Express將你傳入請求的handler傳入request和response對象中。原先該有的還在，但是卻加入了更多新的特性。&lt;a href=&quot;http://expressjs.com/api.html&quot;&gt;API文檔&lt;/a&gt;裏有詳細解釋。下面讓我們來看一些例子。&lt;/p&gt;
+
+&lt;p&gt;其中一個就是 &lt;code&gt;redirect&lt;/code&gt; 方法。代碼如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;response.redirect(&quot;/hello/anime&quot;);
+response.redirect(&quot;http://xvfeng.me&quot;);
+response.redirect(301, &quot;http://xvfeng.me&quot;); // HTTP 301 狀態碼
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以上代碼既不屬於原生Node代碼也不是來自與Connect,而是Express中自身添加的。它加入了一些例如 &lt;code&gt;sendFile&lt;/code&gt;，讓你傳輸整個文件等功能：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;response.sendFile(&quot;/path/to/anime.mp4&quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;request對象還有一些很cool的屬性，例如 &lt;code&gt;request.ip&lt;/code&gt; 可以獲取IP地址, &lt;code&gt;request.files&lt;/code&gt; 上傳文件等。&lt;/p&gt;
+
+&lt;p&gt;理論上來講，我們要知道的東西也不是太多，Express做的只是拓展了request和response對象而已。Express所提供的方法，請參考&lt;a href=&quot;http://expressjs.com/api.html&quot;&gt;API文檔&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3&gt;特性三：視圖&lt;/h3&gt;
+
+&lt;p&gt;Express可以渲染視圖。代碼如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;// 啓動Express
+var express = require(&quot;express&quot;);
+var app = express();
+
+// 設置view目錄
+app.set(&quot;views&quot;, __dirname + &quot;/views&quot;);
+
+// 設置模板引擎
+app.set(&quot;view engine&quot;, &quot;jade&quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;開頭部分的代碼和前面基本一樣。之後我們指定視圖文件所在目錄。然後告訴Express我們要使用 &lt;code&gt;Jade&lt;/code&gt; 作爲模板引擎。 &lt;a href=&quot;http://jade-lang.com/&quot;&gt;Jade&lt;/a&gt;是一種模板語言。稍後將會詳細介紹。&lt;/p&gt;
+
+&lt;p&gt;現在我們已經設置好了view.但是如何來使用它呢？&lt;/p&gt;
+
+&lt;p&gt;首先我們建立一個名爲 &lt;code&gt;index.jade&lt;/code&gt; 的文件並把它放入 &lt;code&gt;views&lt;/code&gt; 目錄。代碼如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;doctype 5
+html
+  body
+    h1 Hello, world!
+    p= message
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;代碼只是去掉了括號的HTML代碼。如果你懂HTML那肯定也看得懂上面的代碼。唯一有趣的是最後一樣。 &lt;code&gt;message&lt;/code&gt; 是一個變量。它是從哪裏來的呢？馬上告訴你。&lt;/p&gt;
+
+&lt;p&gt;我們需要從Express中渲染這個視圖。代碼如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;app.get(&quot;/&quot;, function(request, response) {
+    response.render(&quot;index&quot;, { message: &quot;I love anime&quot; });    
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Express爲 &lt;code&gt;response&lt;/code&gt; 對象添加了一個 &lt;code&gt;render&lt;/code&gt; 方法。這個方法可以處理很多事情，但最主要的還是加載模板引擎和對應的視圖文件，之後渲染成普通的HTML文檔，例如這裏的 &lt;code&gt;index.jade&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;最後一步(我覺得可能算是第一步)就是安裝Jade,因爲它本身並不是Express的一部分。添加至 &lt;code&gt;package.json&lt;/code&gt; 文件並使用 &lt;code&gt;npm install&lt;/code&gt; 進行安裝。&lt;/p&gt;
+
+&lt;p&gt;如果一起設置完畢，你會看到&lt;a href=&quot;http://evanhahn.com/wp-content/uploads/2013/05/anime.html&quot;&gt;這個頁面&lt;/a&gt;。&lt;a href=&quot;https://gist.github.com/EvanHahn/5673968&quot;&gt;完整代碼&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3&gt;加分特性： 所有代碼來自於Connect和Node&lt;/h3&gt;
+
+&lt;p&gt;我需要再次提醒你的是Express建立與Connect和Node之上，這意味着所有的Connect中間件均可以在Express中使用。這個對與開發來講幫助很大。例如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var express = require(&quot;express&quot;);
+var app = express();
+
+app.use(express.logger());  // 繼承自Connect
+
+app.get(&quot;/&quot;, function(req, res) {
+    res.send(&quot;fraser&quot;);    
+});
+
+app.listen(1337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果說你從這篇文章中學到了一點什麼，就是這一點。&lt;/p&gt;
+
+&lt;h2&gt;實戰&lt;/h2&gt;
+
+&lt;p&gt;本文的大部分內容都是理論，但是下面我將教你如何使用它來做一點你想做的東西。我不想說的過於具體。&lt;/p&gt;
+
+&lt;p&gt;你可以將Express安裝到系統全局，從而可以在命令行使用它。它可以幫助你迅速的完成代碼組織並啓動應用。使用npm安裝：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# 安裝時可能需要加 `sudo`
+npm install -g express
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果你需要幫助，輸入 &lt;code&gt;express --help&lt;/code&gt; 。它加入一些可選參數。例如，如果你想使用EJS模板引擎，LESS作爲CSS引擎。應用的名稱爲&amp;ldquo;myApp&amp;rdquo;.輸入以下命令：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;express --ejs --css less myApp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;這裏會自動生成很多文件。進入項目目錄，並使用 &lt;code&gt;npm install&lt;/code&gt; 安裝依賴包，之後便可以使用 &lt;code&gt;node app&lt;/code&gt; 啓動應用！我建議你詳細的查看項目結構和代碼。它可能還算不上一個真正的應用，但是我覺得它對於初學者來講還是很有幫助的。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/visionmedia/express/tree/master/examples&quot;&gt;項目Github目錄下&lt;/a&gt;也有一些很有幫助的文檔。&lt;/p&gt;
+
+&lt;h3&gt;一些補充&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;如果你也和我一樣喜歡使用CoffeeScript，好消息是Express完美支持CoffeeScript.你甚至不需要編譯它。這樣你只用 &lt;code&gt;coffee app.coffee&lt;/code&gt; 即可啓動應用。我在我的其他項目中也是這麼做的。&lt;/li&gt;
+&lt;li&gt;在我看到 &lt;code&gt;app.use(app.router)&lt;/code&gt; 的時候我很疑惑： Express不是一直在使用router嗎？簡單回答是 &lt;code&gt;app.router&lt;/code&gt; 是Express的路由中間件，在你定義路由的時候被直接添加到項目中。如果你需要在加載其他文件之前應用，也可以直接引入它。關於這麼做的原因，請參考&lt;a href=&quot;http://stackoverflow.com/a/12695813/804100&quot;&gt;StackOverflow的這個答案&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;本文是針對Express 3，而在&lt;a href=&quot;https://github.com/visionmedia/express/wiki/4.x-roadmap&quot;&gt;第四版的規劃中&lt;/a&gt;又會有很多大的改動。最明顯的是，Experss可能要將會分解成一些小的模塊，並吸收Connect的一些特性。這個雖然還在計劃中，但是也值得一看。&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;如果這個還不能滿足你？你肯定是個變態！你很快就會變成像一個癮君子，半睜着眼，耗盡你最後一點精力，寫着苦逼的代碼。&lt;/p&gt;
+
+&lt;p&gt;正如Rails成爲使用Ruby建立網頁應用的王者一樣，我覺得Express也會成爲Node中的主流。但是和Rails不一樣，Express更加底層。似乎還沒有一個真正意義上的高級Node庫。我覺得可能會發生改變。（譯者註：這點我不同意，Node的很多思想來自與Unix哲學，強調的是一個Module只解決一個問題，而不是成爲一個複雜的庫。很多Rails的開發者轉向Node，就是因爲Rails正在逐漸變得臃腫，不易自定義，且效率逐漸降低。）。&lt;/p&gt;
+
+&lt;p&gt;這裏我就不再多談。已經又很多很基於Express建立了新的東西，&lt;a href=&quot;https://github.com/visionmedia/express/wiki#frameworks-built-with-express&quot;&gt;Expess的維基&lt;/a&gt;裏有列舉。如果你覺得好可以隨意使用它們，如果你喜歡從底層做起，你也可以只選擇Express。不管是哪一種，好好利用它吧。&lt;/p&gt;
+
+&lt;p&gt;原文地址：&lt;a href=&quot;http://evanhahn.com/understanding-express-js/&quot;&gt;http://evanhahn.com/understanding-express-js/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;時間倉促，翻譯錯誤在所難免，還請指正，轉載還請註明。&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Life Sucks</title>
+   <link href="http://xvfeng.me/posts/thoughts-of-these-days"/>
+   <updated>2013-06-07T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/thoughts-of-these-days</id>
+   <content type="html">&lt;p&gt;距離上次寫生活的文章大概3個月零幾天。是道坎。&lt;/p&gt;
+
+&lt;p&gt;所有有了現在寫點什麼的衝動。&lt;/p&gt;
+
+&lt;p&gt;// 中間這篇日誌其實擱置了一段時間，但今天看了空間裏某個朋友也是寫的剛開始參加工作後的一些傾訴，於是又覺得有了繼續寫下去的衝動。&lt;/p&gt;
+
+&lt;p&gt;不太清楚那位朋友是否和我一樣在畢業之前出來已經有一段時間。是否有過對現在真正出來之後自己遇到問題時的感受絕對是會很不一樣的。&lt;/p&gt;
+
+&lt;p&gt;自己最早大二暑假，一個人人生地不熟跑到出來沒有去過的北方。找了一家甚至沒有名字的公司，開始體驗融入社會的感覺。當時的自己想法還是很少的，到了一個新的地方，對一切都很好奇。&lt;/p&gt;
+
+&lt;p&gt;現在回想起來很奇怪的一點是，自己當初從來沒有覺得苦過。縱然住的是北京很郊外的民房，擠的是破舊的四合院，吃的是鹹菜饅頭。以至於回到學校，每次跟同學分享自己的這段經歷，都會很驕傲自豪的告訴別人，自己是多麼厲害，再苦再差的環境都可以挺過來，而且從無一點抱怨，生活其實也挺好的。&lt;/p&gt;
+
+&lt;p&gt;那是的自己每天都是快樂的，至少是苦中作樂。我跟同學說，因爲老板是山東人，他們自己不愛吃飯，所以我在那吃了兩個月的饅頭加土豆絲。那個時候最快樂的時光，是在週末的時候，和北大的倪順一起下山，去附近的滷肉店買那種做好了的雞腿，然後買幾罐可樂，幾個人很快活的吃一頓。除去那之外就是一起寫代碼幹項目了。那是我倆還是個技術很粗糙的初學者，不知從哪裏來的勇氣，從外面接了一個網站的單子。然後從零開始，在什麼都不懂的情況，摸索着完成了看似不可能完成的任務。&lt;/p&gt;
+
+&lt;p&gt;那個算是人生的第一桶金，準確是。項目完工，拿到了做網站的費用。那個時候剛好鄰居家的一位兄長考上了清華的研究生，於是我聯繫上了他，加上一起做項目的兄弟和另外一位同事，去了清華一家名爲“西門烤翅”的地方一起吃燒烤。&lt;/p&gt;
+
+&lt;p&gt;一個清華，一個北大，手上拿着自己接項目然後轉到的錢，然後痛痛快快請他們吃一頓。這種感覺，我在後來看了《&lt;a href=&quot;http://baike.baidu.com/view/18388.htm&quot;&gt;肖申克的救赎&lt;/a&gt;》之後找到了。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.github.com/fraserxu/fraserxu.github.io/master/images/andy.jpg&quot; alt=&quot;The Shawshank Redemption&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;同學聽了會哈哈大笑，自己講的時候也會跟着笑。因爲在心底，那段時間是不覺得苦的，反而很快樂。也竟然對北京有了一份感情。&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>教你10分鐘內替換Jekyll博客樣式</title>
+   <link href="http://xvfeng.me/posts/change-jekyll-blog-layout-in-ten-minutes"/>
+   <updated>2013-06-02T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/change-jekyll-blog-layout-in-ten-minutes</id>
+   <content type="html">&lt;p&gt;閱讀本文之前，我假定你已經知道&lt;a href=&quot;http://jekyllrb.com/&quot;&gt;Jekyll&lt;/a&gt;是什麼，而且了解基本的使用Github生成靜態博客的相關知識(不然就沒有替換原主題這麼一說了Orz.)。如果你還不太瞭解，推薦訪問&lt;a href=&quot;http://jekyllrb.com/&quot;&gt;Jekyll&lt;/a&gt;的官方網站, 包含了Jekyll的詳細信息。中文教程也可參照著名博客&lt;a href=&quot;http://www.ruanyifeng.com/blog/2012/08/blogging_with_jekyll.html&quot;&gt;阮一峰的網絡日誌&lt;/a&gt;，裏面包含入門教程，以及我們爲什麼要使用Jekyll來搭建博客。&lt;/p&gt;
+
+&lt;p&gt;使用之前的博客樣式有一段時間了，但是始終覺得樣式不太滿意。希望找到一個真正適合閱讀，界面更加簡潔的單欄佈局。偶然在逛Twitter時發現了一篇題爲&lt;a href=&quot;http://ruoyusun.com/&quot;&gt;Things I Wish I Were Told About Angular.js&lt;/a&gt;文章，然後就愛上了博客的樣式。但文章本身不是本文討論的重點。之前在很多地方也看過其他博主使用類似主題，也很容易就判斷出這是基於Jekyll的靜態博客，託管與&lt;a href=&quot;http://github.com&quot;&gt;Github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2&gt;克隆項目代碼&lt;/h2&gt;
+
+&lt;p&gt;首先找到了該博客的Github項目地址&lt;a href=&quot;git@github.com:insraq/insraq.github.com.git&quot;&gt;git@github.com:insraq/insraq.github.com.git&lt;/a&gt;.下一步就是需要分別從Github克隆該項目以及自己博客代碼。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ cd ~/blog
+$ git clone git@github.com:fraserxu/fraserxu.github.io.git
+$ git cloen git@github.com:insraq/insraq.github.com.git
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;替換主要style, JavaScript, 以及_layouts目錄&lt;/h2&gt;
+
+&lt;p&gt;現假設在本地有 &lt;code&gt;~/blog/&lt;/code&gt; 目錄，然後克隆項目分別爲 &lt;code&gt;~/blog/insraq.github.com&lt;/code&gt; , &lt;code&gt;~/blog/fraserxu.github.io&lt;/code&gt;.基於Jekyll的博客的代碼目錄結構非常類似，所以我們需要做的就是簡單的替換掉負責樣式Style以及JavaScript的部分。&lt;/p&gt;
+
+&lt;p&gt;基本結構如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;├── 404.html
+├── CNAME
+├── LICENSE
+├── _config.yml
+├── _layouts
+├── _posts
+├── about.html
+├── apple-touch-icon.png
+├── archive.html
+├── atom.xml
+├── css
+├── favicon.ico
+├── images
+├── index.html
+├── js
+└── readme.markdown
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;首先可以替換的就是 &lt;code&gt;css&lt;/code&gt; , &lt;code&gt;_layouts&lt;/code&gt; 以及 &lt;code&gt;javascript&lt;/code&gt; 目錄，執行一下命令：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rm -rf ~/blog/fraserxu.github.io/css
+$ rm -rf ~/blog/fraserxu.github.io/js
+$ cp -rf ~/blog/insraq.github.com/css ~/blog/fraserxu.github.io
+$ cp -rf ~/blog/insraq.github.com/js ~/blog/fraserxu.github.io
+$ rm -rf ~/blog/fraserxu.github.io/_layouts
+$ cp -rf ~/blog/insraq.github.com/_layouts ~/blog/fraserxu.github.io
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2&gt;替換作者信息，icon圖標, CNAME信息&lt;/h2&gt;
+
+&lt;p&gt;替換完成後，下一步修改作者相關信息。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ vim ~/blog/fraserxu.github.io/_layout/defautl.html
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;替換 &lt;code&gt;header&lt;/code&gt; 部分信息&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;div class=&quot;header&quot;&amp;gt;
+    &amp;lt;h1&amp;gt;&amp;lt;a href=&quot;/&quot;&amp;gt;Fraser Xu's&amp;lt;/a&amp;gt;&amp;lt;/h1&amp;gt;
+    &amp;lt;h2&amp;gt;Thoughts on life and code&amp;lt;/h2&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;依次類推，替換代碼其他包含作者信息部分。例如 &lt;code&gt;about.html&lt;/code&gt; , 替換成你自己的介紹信息。&lt;/p&gt;
+
+&lt;p&gt;最後一部需要修改的就是 &lt;code&gt;CNAME&lt;/code&gt; 部分，替換成自己的域名。以及替換相關的 &lt;code&gt;icon&lt;/code&gt; 文件。&lt;/p&gt;
+
+&lt;h2&gt;提交代碼&lt;/h2&gt;
+
+&lt;p&gt;文件替換後，最後一部提交代碼&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ cd ~/blog/fraserxu.github.io
+$ git add .
+$ git commit -m 'another brand new awesome blog layout'
+$ git push origin master
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;搞定！10分鐘內替換博客佈局，Have Fun!&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Nodejs Job Queue With Kue</title>
+   <link href="http://xvfeng.me/posts/nodejs-job-queue-with-que"/>
+   <updated>2013-05-08T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/nodejs-job-queue-with-que</id>
+   <content type="html">&lt;p&gt;As our project move from v0.0.1 to v0.0.2, we need to add a job queue into our existing project.&lt;/p&gt;
+
+&lt;p&gt;The reason behind this is that while performing the whole story, we have multiple operation in a row like init storage, update cloud information from aws, log out error, etc. So the job queue is need to be added here.&lt;/p&gt;
+
+&lt;p&gt;We search solutions over the internet with google to find a way to implement this in nodejs, and &lt;a href=&quot;http://learnboost.github.com/kue/&quot;&gt;kue&lt;/a&gt; comes to rescue. And after checking that we found it was an open source project contribute by the &lt;a href=&quot;http://learnboost.com&quot;&gt;LearnBoost&lt;/a&gt; guys.&lt;/p&gt;
+
+&lt;p&gt;So the LearnBoost crew are up to their goodness once again. They are prolific with open source, adn have now make Kue avaliable on &lt;a href=&quot;https://github.com/learnboost/kue&quot;&gt;Github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;&lt;p&gt;Kue is a feature rich priority job queue for node.js backed by redis. A key feature of Kue is it’s clean user-interface for viewing and managing queued, active, failed, and completed jobs.&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;p&gt;As described above, it&amp;rsquo;s using node.js along with redis, and also have a beautiful front-end interface. So that&amp;rsquo;s just check the &lt;code&gt;package.json&lt;/code&gt; file to see what&amp;rsquo;s in there:&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5558696.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Before this project, I don&amp;rsquo;t have any background information around this. So I started everything from beginning.&lt;/p&gt;
+
+&lt;p&gt;First let&amp;rsquo;s have a look at an example list in the &lt;code&gt;readme.md&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5558699.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Simple and easy to understand, it just requires the &lt;code&gt;kue&lt;/code&gt; library and then create a new &lt;code&gt;jobs&lt;/code&gt; instance with the &lt;code&gt;createQueue()&lt;/code&gt; method.&lt;/p&gt;
+
+&lt;blockquote&gt;&lt;p&gt;Calling jobs.create() with the type of job (&amp;ldquo;email&amp;rdquo;), and arbitrary job data will return a Job, which can then be save()ed, adding it to redis, with a default priority level of &amp;ldquo;normal&amp;rdquo;. The save() method optionally accepts a callback, responding with an error if something goes wrong. The title key is special-cased, and will display in the job listings within the UI, making it easier to find a specific job.&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5558708.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;After that, It will create a jobs to be called later.&lt;/p&gt;
+
+&lt;p&gt;And that&amp;rsquo;s it, our job is created. And once we need to excute the job later, What we need to do is just use the process method:&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5558712.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Kue also have other rather useful method avaible for us to use like &lt;strong&gt;job priority&lt;/strong&gt; which can be used to control the priority of jobs to be excuted, &lt;strong&gt;failure attempts&lt;/strong&gt; which can excuted the job after the job failed serval times, &lt;strong&gt;job log&lt;/strong&gt; and so on. The &lt;code&gt;readme.md&lt;/code&gt; is quite clear and simple to get started.&lt;/p&gt;
+
+&lt;p&gt;At the end of the &lt;code&gt;readme.md&lt;/code&gt;, there&amp;rsquo;s also two videos &lt;a href=&quot;http://www.screenr.com/oyNs&quot;&gt;Introduction to Kue&lt;/a&gt; and &lt;a href=&quot;http://nodetuts.com/tutorials/27-kue-jobs.html#video&quot;&gt;API walkthrough to Kue&lt;/a&gt; which is quite userful I think.&lt;/p&gt;
+
+&lt;p&gt;And that&amp;rsquo;s it, there&amp;rsquo;s more fine to play with this.&lt;/p&gt;
+
+&lt;p&gt;I get excited about the vast majority of what comes out of LearnBoost. Node and redis are also a fantastic combination, especially for job systems.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>如何组织AngularJS项目代码结构</title>
+   <link href="http://xvfeng.me/posts/the-right-way-of-coding-angularjs-how-to-organize-a-regular-webapp"/>
+   <updated>2013-04-29T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/the-right-way-of-coding-angularjs-how-to-organize-a-regular-webapp</id>
+   <content type="html">&lt;p&gt;学习AngularJS有一段时间了。对比其他一些MVC框架，AngularJS可以帮你更好的去组织代码。公司当前在开发一个单页面的WebApp，之前使用Backbone开发。但是经过一段时间讨论，我们最终决定转向使用AngularJS。二者对比起来，AngularJS代码结构更加清晰，即便没有写过多少前端代码或者使用过MVC框架，你都可以直接的去理解代码。&lt;/p&gt;
+
+&lt;p&gt;但是这并不能意味着使用AngularJS组织代码就会很容易。一不小心，你就可能会使你的代码乱做一团。&lt;/p&gt;
+
+&lt;p&gt;废话少说，下面就我使用AngularJS一段时间之后总结出来的一些好的实践。对我个人的项目是很有帮助的，也拿出来跟大家分享。&lt;/p&gt;
+
+&lt;p&gt;请看下面例子。&lt;/p&gt;
+
+&lt;p&gt;访问某个地址得到如下页面:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.github.com/xufeng123/xufeng123.github.com/master/images/angular_post_01.png&quot; alt=&quot;angular_post_01&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;然后登录，并跳转到/sports页面:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.github.com/xufeng123/xufeng123.github.com/master/images/angular_post_02.png&quot; alt=&quot;angular_post_02&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;之后再跳转到/players页面:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.github.com/xufeng123/xufeng123.github.com/master/images/angular_post_03.png&quot; alt=&quot;angular_post_03&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这个例子里面涵盖了一个WebApp的大部分常见操作。那么如何来实现这些功能呢？&lt;/p&gt;
+
+&lt;p&gt;1) 首先就是定义路由和控制器Controller。每个页面都由一个主要的Controller来控制：&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5487373.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;2) 现在我们定义好了路由，模板以及Controller。你会发现，每个页面都有Footer且内容一样。Header也出现在每个页面，内容也基本一致。考虑到我们会多次使用到Footer，这里我们定义一个directive。这个directive拥有一个模板以及一个controller。这样，我们在需要使用时只用添加一个链接就可以了。&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5487466.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;3) Header部分也基本一样。我们会在很多地方使用到它，但是这里和Footer还是有点区别。在这里，我使用AngularUI ui-if directive。根据不同的需求显示不同的内容。&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5487504.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;这里有两点需要注意。首先是scope属性，我们使用了user:&amp;ldquo;=&amp;rdquo;. 这是什么意思？这里将会添加user到外部的scope($scope.user).它将会把HTML里的值作为参数建立双向绑定。如果user没有输入任何值，它就会假设父级scope变量的名称为user.有点疑惑，到底是啥意思？&lt;/p&gt;
+
+&lt;p&gt;如果你在HTML模板中插入&lt;code&gt;&amp;lt;div header user=&quot;userModel&quot;&amp;gt;&lt;/code&gt;, 这将意味着Header directive中的$scope.user永远与Controller里的$scope.userModel一致。如果其中一个发生变化，另外一个也会随之变化。这实在是酷了！因此，我们可以使用ui-if来检查$scope.user是否存在于模板当中。同样，因为这里使用的是双向绑定，如果$scope.userModel从undefined变为user(假设用户登录后), header也会随之变化。&lt;/p&gt;
+
+&lt;p&gt;4) 现在我们要做的就是使用我们的directive为每个controller分别创建主模板。&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/xufeng123/5487885.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;到这里我们就完成了。我们拥有了一个由页头，页尾以及特定内容的页面。现在，每次我们需要添加页面，只需要建立一个controller, 创建一个模板，然后根据需要添加header和footer。&lt;/p&gt;
+
+&lt;p&gt;related post: &lt;a href=&quot;http://www.blogeek.com.ar/2013/03/23/the-right-way-of-coding-angularjs-how-to-organize-a-regular-webapp/&quot;&gt;http://www.blogeek.com.ar/2013/03/23/the-right-way-of-coding-angularjs-how-to-organize-a-regular-webapp/&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Video integration with Jekyll</title>
+   <link href="http://xvfeng.me/posts/7--video-integration-with-jekyll"/>
+   <updated>2013-03-05T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/7--video-integration-with-jekyll</id>
+   <content type="html">&lt;p&gt;Adding some functionality to Jekyll to allow integration of YouTube videos is a pretty easy task.&lt;/p&gt;
+
+&lt;p&gt;First we need a couple of things&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;A nice video hosted on YouTube&lt;/li&gt;
+&lt;li&gt;The embed code for the video&lt;/li&gt;
+&lt;li&gt;A Jekyll theme that supports video embedding&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;The first two things are easy enough to produce. The third thing is a bit more complicated, but hopefully after reading this post you&amp;rsquo;ll have integrated YouTube videos in your Jekyll blog in no time.&lt;/p&gt;
+
+&lt;h4&gt;Working with the YouTube embed code&lt;/h4&gt;
+
+&lt;p&gt;The embed code YouTube gives you contains most of the bits we need, here is an example from the video above:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;iframe&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;width=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;560&amp;quot;&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;height=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;315&amp;quot;&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;http://www.youtube.com/embed/fyY9tb8Rvlk&amp;quot;&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;frameborder=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;0&amp;quot;&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;allowfullscreen&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/iframe&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We need to break this in to two parts to use it with Jekyll, and set up some new &lt;a href=&quot;/post/adding-more-post-metadata-to-jekyll-with-yaml/&quot;&gt;YAML front matter&lt;/a&gt; to make the inclusion of videos simple.&lt;/p&gt;
+
+&lt;h4&gt;Setting up the YAML&lt;/h4&gt;
+
+&lt;p&gt;When you create a new post in Jekyll, you will have the usual YAML block at the top of your file, such as the following:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;    ---
+    layout: post
+    title: &amp;quot;Some awesome post&amp;quot;
+    ---
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To begin, we need to add a new line before the last &lt;code&gt;---&lt;/code&gt; to define a YouTube embed url, which we take from the YouTube embed code. I&amp;rsquo;m using the &lt;code&gt;src&lt;/code&gt; from the embed code above in the example below:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;    ---
+    layout: post
+    title: &amp;quot;Some awesome post&amp;quot;
+    video_url: http://www.youtube.com/embed/fyY9tb8Rvlk
+    ---
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Tweaking the embed code&lt;/h4&gt;
+
+&lt;p&gt;Now, within our page template we will have access to the &lt;code&gt;page.video_url&lt;/code&gt; property, so we can set up some template logic to render the YouTube video. We will be taking the embed code as above, and changing a few things:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;    {% if page.video_url %}
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;less-fancy-video-header&amp;quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;nt&quot;&gt;&amp;lt;iframe&lt;/span&gt; 
+        &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;yt-embed&amp;quot;&lt;/span&gt; 
+        &lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;{{ page.video_url }}?&amp;amp;amp;rel=0&amp;amp;amp;showinfo=0&amp;amp;amp;autohide=1&amp;amp;amp;hd=1&amp;amp;amp;wmode=transparent&amp;quot;&lt;/span&gt; 
+        &lt;span class=&quot;na&quot;&gt;frameborder=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;0&amp;quot;&lt;/span&gt; 
+        &lt;span class=&quot;na&quot;&gt;allowfullscreen=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/iframe&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    {% endif %}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;First we have a conditional block around this whole snippet, to check that we&amp;rsquo;ve specified a &lt;code&gt;page.video_url&lt;/code&gt; in our YAML front matter. Then we&amp;rsquo;ve got pretty much the regular YouTube embed code, but I&amp;rsquo;ve got some extra markup around this, and some small differences to the iframe attributes.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve included a bunch of additional &lt;code&gt;url&lt;/code&gt; parameters in the &lt;code&gt;src&lt;/code&gt; attribute, to hide various bits of the embedded video, but this is all purely optional. The most important parameter here is probably the &lt;code&gt;wmode&lt;/code&gt; parameter, if you set this to &lt;code&gt;transparent&lt;/code&gt; you can aleviate any issues with embedded YouTube video appearing over absolutely positioned elements on your page.&lt;/p&gt;
+
+&lt;p&gt;The same goes for integrate video from youku or vimeo.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s the sample code, just added it in the &lt;code&gt;div&lt;/code&gt; right after the &lt;code&gt;&amp;lt;/iframe&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;embed&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;quality=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;high&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;width=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;500&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;height=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;420&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;align=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;middle&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;allowScriptAccess=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sameDomain&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;allowFullscreen=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;application/x-shockwave-flash&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/embed&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;iframe&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;
+  width=&amp;quot;500&amp;quot; height=&amp;quot;281&amp;quot;
+  frameborder=&amp;quot;0&amp;quot;
+  webkitAllowFullScreen mozallowfullscreen allowFullScreen
+ &amp;gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;/iframe&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And in the post &lt;code&gt;**.md&lt;/code&gt;, just add the following code right after&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;    
+video_url: http://www.youtube.com/embed/fyY9tb8Rvlk
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;html&quot;&gt;video_url_youku: http://player.youku.com/player.php/sid/XMTE0OTQ1MTA4/v.swf
+video_url_vimeo: http://player.vimeo.com/video/60594348
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Got that? It&amp;rsquo;s super simple.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>鼓励远程办公的七个理由</title>
+   <link href="http://xvfeng.me/posts/7-great-reasons-to-encourage-working-remotely"/>
+   <updated>2013-03-02T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/7-great-reasons-to-encourage-working-remotely</id>
+   <content type="html">&lt;p&gt;雅虎现任CEO梅姐的一句话激起了千层浪，称要&lt;a href=&quot;http://37signals.com/svn/posts/3453-no-more-remote-work-at-yahoo&quot;&gt;禁止所有远程办公，重拾“创业精神”&lt;/a&gt;。但是仍然有很多公司在提倡远程办公。&lt;a href=&quot;http://stackexchange.com/&quot;&gt;StackExchange&lt;/a&gt;(国外著名编程问答网站)的首席开发者David Fullerton解释了为什么他所在公司要实行远程办公以及具体的实施方案。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.fastcompany.com/multisite_files/fastcompany/imagecache/640/poster/2013/03/3006402-poster-1280-why-we-still-believe-working-remotely.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;2013年，几乎是在我们最初开始筹款并成立时四个人之后的第三年。也正是在那个时候，我们的创始人Jeff Atwood写了一篇关于远程办公的&lt;a href=&quot;http://www.codinghorror.com/blog/2010/05/on-working-remotely.html&quot;&gt;文章&lt;/a&gt;,基本阐述了我们将会如何实行远程办公计划。到现在也已经过去几年，到了该更新它的时间，而事实上我们已经开始这么做了。&lt;/p&gt;
+
+&lt;p&gt;首先，简要介绍一下我们现在的情况。Stack Exchange现在有75名雇员，基本按照销售和产品来划分团队。产品团队正是目前执行远程办公的团队。其中有16名雇员全职远程办公，另外18名雇员，包括系统管理员，设计师以及社区经理等在办公室办公。因此我们是一个混合办公方式的团队，我相信也是世界上最好的团队。我领导着工程团队，因此我主要谈谈与开发人员有关的问题，但这些在其他职位上也能适用。&lt;/p&gt;
+
+&lt;h3&gt;我们为何信任员工远程办公&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;#1:可以雇佣到不愿移居的雇员。&lt;/strong&gt; 远程雇佣可以让你接触到很多那些不愿搬家的人。他们或受制与配偶的工作，或小孩的学习，或签证的办理，或住所的找寻。对于雇佣技术人员，远程雇佣可以帮你最大限制的保护你的隐私。通过远程雇佣，我们已经为我们团队找到了很多有经验的工程师，他们各自快乐的生活在Corvallis, Oregon或者U.K.的Forest Dean这些地方(仔细对着看看地图，他们基本都住在海岸边)。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#1a:员工不会因为自己身边重要的人因为某些愚蠢的原因而离开。&lt;/strong&gt; 在来Stack Exchange之前，我再Fog Creek工作。我看到了至少五名优秀的开发者因为家庭原因而离开，这些都归结于Fog Creek当时的禁止远程办公政策。&lt;strong&gt;这个几乎令我疯狂。&lt;/strong&gt;他们都是相当出色的员工，公司也花了大量精力来培养他们，但现在却因为不能继续在纽约生活而离开。在Stack Exchange,我们已经有2名员工搬离了纽约，但现在仍然开心的在所在地办公。如果我们没有实行远程办公，我们会失去至少两位伟大的开发者。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#2:实行的好，效率会更高。&lt;/strong&gt; 私人办公室？弹性办公时间？简短的交流？都有！告诉你一个秘密：我们大部分远程开发者实际办公时间多于在办公室的开发者。这个不是必须的，也很可能与实际不符，但是当上班变得和上楼一样简单，雇员很有可能会投入更多的工作时间，办公效率也会更高。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#3:让你更加集中精力做事而不是仅仅坐在那而已。&lt;/strong&gt; 作为一名经理，我也没法轻易的了解到团队里每个人的工作时间。这个对我来讲可能也有好处，因为这样可以强迫我去观察他们到底做了什么。对于远程雇员也同样如此：他们不至于会蠢到因为自己在办公室里，把浏览Reddit网站也当作在工作。通常只有在幻想的世界里才会这样，但是往往我们却很容易陷入到“去办公室”就等于“工作”的思维当中去。&lt;/p&gt;
+
+&lt;h3&gt;我们所学到的&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;#1：不是任何人都适用于远程办公。&lt;/strong&gt; 现在有一种趋势，人们普遍认为远程办公百利而无一害，对项目有很大帮助。&lt;a href=&quot;http://theoatmeal.com/comics/working_home&quot;&gt;但实际上不是的&lt;/a&gt;。你可能会因身边的人而分心，打打乒乓球或者一起吃个午饭，你的工作与生活就会混在一起。有些人在家工作时会特别兴奋，但其他人却会因此而分心。我们这里两种人都有：远程办公的员工回到办公室办公，在办公室工作的决定开始远程办公。对于我们来讲，最关键的就是帮助他们选择最适合自己的方式。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#2：远程办公是一个你在招聘时需要考察的一项技能。&lt;/strong&gt; 既然远程办公不适用于任何人，那么你必须要确定你所在找的远程办公的候选人必须要能够极好的适应它。我们在寻找的员工也必须具备自我激励的能力，并且能够积极主动：能够主动的找事去做，积极的与团队的其他成员交流。我们这里的远程开发人员都是公司里最具争议的人，因为我们在寻找他们的时候也期望他们能够那样。我们喜欢那些固执己见的人。他们会主动寻找那些自己想做的事情去做，并且确保你知道他们在想什么，这在远程办公的环境下至关重要。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#3: 你必须要把它看作一个团队或公司。&lt;/strong&gt; 在分布式的团队里没有人是特殊的。如果有一个人在远程办公，团队中的其他人也都必须开始网上交流。重要决定与核心掌控必须到在办公室之外。即使在远程雇员不在场的情况下，所有的事情也都必须在线完成，否则那个人就可能渐渐的与团队脱离。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#4: 交流是很困难的(在任何情况下都是如此)。&lt;/strong&gt; 我远不是提出这个观点的人，但对于一个从4个人增长到75个人的公司来讲，交流时最大的难题。四个人的时候，所有的人对所有的事情都非常清楚。当人数达到75个人时，这个就不可能了。因此你必须要找到适合自己的交流方式。&lt;/p&gt;
+
+&lt;h3&gt;如何实现&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;#1：谷歌Hangouts(多人在线视频平台)。&lt;/strong&gt; 谷歌Hangouts是我们团队的血液。如果你之前没有使用过他进行视频对话，那你一定是生活在石器时代。我们时刻保持Hangouts能够通过一个团队成员都知道的URL进行访问。我们也会进行那种一次性的简短视频交流。我们使用它进行会议，演示，教学等等，几乎用它做任何事情。没有任何东西可以替代面对面的交流。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#2：持续交流。&lt;/strong&gt; 聊天是一种简短的谈话方式并能迅速对问题做出响应。主要有两个好处：(1)异步，能够在任何时间返回查看聊天记录，(2)持续，在需要时返回查看错过的对话(在不同时区工作的尤为重要)。不管是否为分布式办公，每个公司都应该有一个聊天室系统。这个比直接去桌上打扰别人要好，也胜过拉着几个人进行面对面的交谈。我们也建立了一套&lt;a href=&quot;http://chat.stackoverflow.com/&quot;&gt;自己的聊天系统&lt;/a&gt;，但现在市场上也有很多很好的替代品例如Campfire和HipChat。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#3：电子邮件。&lt;/strong&gt; &lt;a href=&quot;http://www.codinghorror.com/blog/2008/11/is-email-efail.html&quot;&gt;电子邮件也许正在衰败&lt;/a&gt;，但他仍然存在于我们的工作中。Email通常用于异步交流（需要得到及时回复是不要使用email），用于交流状态更新或是做出某些决定。我们有一个硬性规定，所有的决策都必须通过电子邮件分享到团队中的其他成员，基本按照Jeff在&lt;a href=&quot;http://www.codinghorror.com/blog/2010/05/on-working-remotely.html&quot;&gt;开始所描述的&lt;/a&gt;在做。每个团队发送一份周到公司，用于公布一份高度简洁的项目进度，从而保证不与其他的团队脱节。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#4: Trello(在线白板工具) + 谷歌文档(Google Docs)。&lt;/strong&gt; 我们使用&lt;a href=&quot;http://trello.com/&quot;&gt;Trello&lt;/a&gt;记录每个人的工作状态，Google Docs添加笔记，规范，设计方案等。两者都是我们必须使用的工具，即使不是远程办公你也应该考虑考虑。&lt;/p&gt;
+
+&lt;p&gt;分布式的团队并不适用于每个人，但对于我们来讲一切都进展的非常顺利。是的，他可能需要更多的投入，但是却是值得的。因为我们已经因为它找到了优秀的员工，并为他们提供了高品质的生活。对于我们来讲，它是我们团队从最初创立的基因，也是我么将会长期发展的战略。到我们的雇员达到500人时还会这样吗？我不知道，但我也很想看看结果会怎样。&lt;/p&gt;
+
+&lt;p&gt;原文由作者发表在Stack Exchange&lt;a href=&quot;http://blog.stackoverflow.com/2013/02/why-we-still-believe-in-working-remotely/&quot;&gt;博客&lt;/a&gt;上，经允许发表。&lt;/p&gt;
+
+&lt;p&gt;配图来源: Flickr用户 &lt;a href=&quot;http://www.flickr.com/photos/spierisf/5517564889/&quot;&gt;spieri_sf&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;（译者注：原文链接：&lt;a href=&quot;http://www.fastcompany.com/3006402/7-great-reasons-encourage-working-remotely&quot;&gt;http://www.fastcompany.com/3006402/7-great-reasons-encourage-working-remotely&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Git时代的VIM不完全使用教程</title>
+   <link href="http://xvfeng.me/posts/Git-Vim-tutorial"/>
+   <updated>2013-03-01T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/Git-Vim-tutorial</id>
+   <content type="html">&lt;p&gt;最近整理了VIM的配置，换上插件管理的神器&amp;mdash;&amp;ndash;&lt;a href=&quot;https://github.com/gmarik/vundle&quot;&gt;Vundle&lt;/a&gt;，由他引发的VIM生态环境的改善，堪称完美。遂打算写一份简单的教程，分享Git时代VIM新世界的美丽动人之处。&lt;strong&gt;对VIM有基础的同学，可直接跳至插件管理部分。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2&gt;VIM的模式&lt;/h2&gt;
+
+&lt;p&gt;第一次使用VIM，会觉得无所适从，他并不像记事本，你敲什么键就显示什么，理解VIM的需要明白他的两种模式：
+- 命令模式 (Command Mode)
+- 编辑模式 (Insert Mode)&lt;/p&gt;
+
+&lt;p&gt;命令模式下，可以做移动、编辑操作；编辑模式则用来输入。键入&lt;code&gt;i&lt;/code&gt;,&lt;code&gt;o&lt;/code&gt;,&lt;code&gt;s&lt;/code&gt;,&lt;code&gt;a&lt;/code&gt;等即可进入编辑模式，后面解释原因。&lt;/p&gt;
+
+&lt;p&gt;模式的设计是VIM和其他编辑器最不同的地方，优势和劣势也全基于此而生。&lt;/p&gt;
+
+&lt;h2&gt;基本操作&lt;/h2&gt;
+
+&lt;p&gt;以下介绍的键盘操作，都是大小写敏感的，并且要在&lt;strong&gt;命令模式&lt;/strong&gt;下完成，需注意：&lt;/p&gt;
+
+&lt;h3&gt;以字为单位的移动&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;h&lt;/code&gt; 向左移动一个字&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;j&lt;/code&gt; 向下移动一行&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;k&lt;/code&gt; 向上&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;l&lt;/code&gt; 向右&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;这四个键在右手最容易碰到几个位置，最为常用。&lt;/p&gt;
+
+&lt;h3&gt;以词为单位的移动&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;w&lt;/code&gt; 下一個word w(ord)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;W&lt;/code&gt; 下一個word(跳过标点)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;b&lt;/code&gt; 前一個word b(ackward)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B&lt;/code&gt; 前一个word(跳过标点)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;e&lt;/code&gt; 跳到当前word的尾端 e(nd)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h3&gt;行移动&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;0&lt;/code&gt; 跳到当前行的开头&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;^&lt;/code&gt; 跳到当前行第一个非空字符&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;$&lt;/code&gt; 跳到行尾&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;助记：0(第0个字符),&lt;code&gt;^&lt;/code&gt;和&lt;code&gt;$&lt;/code&gt;含义同正则表达式&lt;/p&gt;
+
+&lt;h3&gt;段落移动&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;{&lt;/code&gt; 上一段(以空白行分隔)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;}&lt;/code&gt; 下一段(以空白行分隔)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;%&lt;/code&gt; 跳到当前对应的括号上(适用各种配对符号)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h3&gt;跳跃移动&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/xxxx&lt;/code&gt; 搜索xxxx，然后可以用&lt;code&gt;n&lt;/code&gt;下一个，&lt;code&gt;N&lt;/code&gt;上一个移动&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;#&lt;/code&gt; 向前搜索光标当前所在的字&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;*&lt;/code&gt; 向后搜索光标当前所在的字&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fx&lt;/code&gt; 在当前行移动到光标之后第一个字符x的位置 f(ind)x&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;gd&lt;/code&gt; 跳到光标所在位置词(word)的定义位置 g(o)d(efine)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;gg&lt;/code&gt; 到文档顶部&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;G&lt;/code&gt; 到文档底部&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:x&lt;/code&gt; 跳到第x行(x是行号)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ctrl+d&lt;/code&gt; 向下翻页 d(down)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ctrl+u&lt;/code&gt; 向上翻页 u(p)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h3&gt;基本编辑&lt;/h3&gt;
+
+&lt;h4&gt;修改&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;i&lt;/code&gt; 在光标当前位置向前插入 i(nsert)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;I&lt;/code&gt; 在本行第一个字符前插入&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;a&lt;/code&gt; 在光标当前位置向后插入 a(fter)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;A&lt;/code&gt; 在本行末尾插入&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;o&lt;/code&gt; 向下插入一行&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;O&lt;/code&gt; 向上插入一行&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:w&lt;/code&gt; 保存&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:q&lt;/code&gt; 退出&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:wq&lt;/code&gt; 保存并退出&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h4&gt;删除&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;x&lt;/code&gt; 删除当前字符&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dd&lt;/code&gt; 删除当前行 d(elete)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dw&lt;/code&gt; 删除当前光标下的词 d(elete)w(ord)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h4&gt;复制粘贴&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;yy&lt;/code&gt; 复制当前行 y(ank)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;yw&lt;/code&gt; 复制当前光标下的词 y(ank)w(ord)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;p&lt;/code&gt; 粘贴 p(aste)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;P&lt;/code&gt; 粘贴在当前位置之前&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h2&gt;进阶操作&lt;/h2&gt;
+
+&lt;p&gt;限于篇幅，在这里我仅介绍下我非常常用的几个操作。&lt;/p&gt;
+
+&lt;h3&gt;重复操作&lt;/h3&gt;
+
+&lt;p&gt;因为VIM所有的操作都是原子化的，所以把这些操作程序化就非常简单了：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;5w&lt;/code&gt; 相当于按五次&lt;code&gt;w&lt;/code&gt;键；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;6j&lt;/code&gt; 下移6行，相当于按六次j；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;3J&lt;/code&gt; 大写J,本来是将下一行与当前行合并，加上数量，就是重复操作3次；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;6dw&lt;/code&gt;和&lt;code&gt;d6w&lt;/code&gt; 结果是一样，就是删除6个word；&lt;/li&gt;
+&lt;li&gt;剩下的无数情况，自己类推吧。&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h3&gt;高效编辑&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;di&quot;&lt;/code&gt; 光标在&amp;ldquo;&amp;rdquo;之间，则删除&amp;ldquo;&amp;rdquo;之间的内容&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;yi(&lt;/code&gt; 光标在()之间，则复制()之间的内容&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;vi[&lt;/code&gt; 光标在[]之间，则选中[]之间的内容&lt;/li&gt;
+&lt;li&gt;以上三种可以自由组合搭配，效率奇高，i(nner)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dtx&lt;/code&gt; 删除字符直到遇见光标之后的第一个&lt;code&gt;x&lt;/code&gt;字符&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ytx&lt;/code&gt; 复制字符直到遇见光标之后的第一个&lt;code&gt;x&lt;/code&gt;字符&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h3&gt;标记和宏(macro)&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ma&lt;/code&gt; 将当前位置标记为a，26个字母均可做标记，&lt;code&gt;mb&lt;/code&gt;、&lt;code&gt;mc&lt;/code&gt;等等；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;'a&lt;/code&gt; 跳转到a标记的位置；&lt;/li&gt;
+&lt;li&gt;这是一组很好的文档内标记方法，在文档中跳跃编辑时很有用；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qa&lt;/code&gt; 将之后的所有键盘操作录制下来，直到再次在命令模式按下&lt;code&gt;q&lt;/code&gt;，并存储在&lt;code&gt;a&lt;/code&gt;中；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;@a&lt;/code&gt; 执行刚刚记录在&lt;code&gt;a&lt;/code&gt;里面的键盘操作；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;@@&lt;/code&gt; 执行上一次的macro操作；&lt;/li&gt;
+&lt;li&gt;宏操作是VIM最为神奇的操作之一，需要慢慢体会其强大之处；&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;VIM的基本操作，可以挖掘的东西非常多，不仅仅需要记忆，更需要自己去探索总结，熟练之后，效率会大幅度提升。后面会给出一些参考链接。&lt;/p&gt;
+
+&lt;h2&gt;插件管理&lt;/h2&gt;
+
+&lt;h3&gt;Vundle&lt;/h3&gt;
+
+&lt;p&gt;终于到这篇Blog我最想讨论的部分了。VIM的强大不仅仅体现在操作的高效率，更有强大而充沛的插件做支援，插件丰富了之后，就面临查找和管理的问题。&lt;/p&gt;
+
+&lt;p&gt;在遇见&lt;a href=&quot;https://github.com/gmarik/vundle&quot;&gt;Vundle&lt;/a&gt;之前，我用&lt;a href=&quot;https://github.com/tpope/vim-pathogen&quot;&gt;Pathogen&lt;/a&gt;管理插件。Pathogen还算方便，只需要把相应插件，放在&lt;code&gt;bundle&lt;/code&gt;目录下即可，不需要再像以前那样逐个放置单独的文件到相应目录，大大节省了劳动力，管理起来也一目了然，觉得还不错，至少比vimball那种需要执行命令安装的方式好一些。&lt;/p&gt;
+
+&lt;p&gt;我真希望我早些遇见Vundle。Vundle受到Pathogen和Vimball的启发，于是有了现在的模样。Vundle的逻辑是这样的：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;在&lt;a href=&quot;http://vim-scripts.org/vim/scripts.html&quot;&gt;Vim Script&lt;/a&gt;选好你想要的插件；&lt;/li&gt;
+&lt;li&gt;在VIM的配置文件中写一句 &lt;code&gt;Bundle plugin_name&lt;/code&gt;；&lt;/li&gt;
+&lt;li&gt;执行一下Vundle的初始化命令，插件就装好了；&lt;/li&gt;
+&lt;li&gt;升级和卸载也是同样的简单；&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;完美的世界！&lt;/p&gt;
+
+&lt;h3&gt;Vundle的配置&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/gmarik/vundle&quot;&gt;Vundle&lt;/a&gt;的安装很简单：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone http://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后写配置文件&lt;code&gt;.vimrc&lt;/code&gt;：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;set nocompatible    &quot; be iMproved
+filetype off        &quot; required!
+
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+&quot; let Vundle manage Vundle
+&quot; required!
+Bundle 'gmarik/vundle'
+
+&quot; vim-scripts repos
+Bundle 'vim-plugin-foo'
+Bundle 'vim-plugin-bar'
+
+filetype plugin indent on    &quot; required!
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;其中&lt;code&gt;Bundle&lt;/code&gt;后面的内容，就是插件的名字，插件维护在&lt;a href=&quot;http://vim-scripts.org/vim/scripts.html&quot;&gt;Vim-Script.org&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;然后，打开VIM之后，可以输入以下命令：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&quot;安装插件:
+:BundleInstall
+
+&quot;更新插件:
+:BundleInstall!
+
+&quot;卸载不在列表中的插件:
+:BundleClean
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在大部分的插件都已经从&lt;a href=&quot;http://www.vim.org/scripts/index.php&quot;&gt;Vim.org&lt;/a&gt;迁移到了&lt;a href=&quot;http://vim-scripts.org/vim/scripts.html&quot;&gt;Vim-Script.org&lt;/a&gt;，而且很多作者也认领了自己的插件，直接在这个Github的项目下更新，一个比Vim.org更科学更有效的生态环境，就这样完美的形成了。&lt;/p&gt;
+
+&lt;p&gt;在此非常严重的感谢vim-scripts.org的创建者&lt;a href=&quot;https://github.com/bronson&quot;&gt;Scott Bronson&lt;/a&gt;，和&lt;a href=&quot;https://github.com/gmarik/vundle&quot;&gt;Vundle&lt;/a&gt;的作者&lt;a href=&quot;https://github.com/gmarik&quot;&gt;gmarik&lt;/a&gt;。他们的创新和分享精神，让这个世界又美好了一些。&lt;/p&gt;
+
+&lt;p&gt;也感谢业界良心&lt;a href=&quot;https://github.com/&quot;&gt;Github&lt;/a&gt;。Vim-Scripts.org整站就是用&lt;a href=&quot;https://pages.github.com/&quot;&gt;Github Pages&lt;/a&gt;建立维护的，对于个人来说，这是很好的选择，有兴趣的同学可以参看我之前的博客：&lt;a href=&quot;http://beiyuu.com/github-pages/&quot;&gt;使用Github Pages建独立博客&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2&gt;插件介绍&lt;/h2&gt;
+
+&lt;p&gt;有了Vundle，再装插件就是件享受的事情了。我常用的插件有：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#相较于Command-T等查找文件的插件，ctrlp.vim最大的好处在于没有依赖，干净利落
+Bundle 'ctrlp.vim'
+
+#在输入()，&quot;&quot;等需要配对的符号时，自动帮你补全剩余半个
+Bundle 'AutoClose'
+
+#神级插件，ZenCoding可以让你以一种神奇而无比爽快的感觉写HTML、CSS
+Bundle 'ZenCoding.vim'
+
+#在()、&quot;&quot;、甚至HTML标签之间快速跳转；
+Bundle 'matchit.zip'
+
+#显示行末的空格；
+Bundle 'ShowTrailingWhitespace'
+
+#JS代码格式化插件；
+Bundle '_jsbeautify'
+
+#用全新的方式在文档中高效的移动光标，革命性的突破
+Bundle 'EasyMotion'
+
+#自动识别文件编码；
+Bundle 'FencView.vim'
+
+#必不可少，在VIM的编辑窗口树状显示文件目录
+Bundle 'The-NERD-tree'
+
+#NERD出品的快速给代码加注释插件，选中，`ctrl+h`即可注释多种语言代码；
+Bundle 'The-NERD-Commenter'
+
+#解放生产力的神器，简单配置，就可以按照自己的风格快速输入大段代码。
+Bundle 'UltiSnips'
+
+#让代码更加易于纵向排版，以=或,符号对齐
+Bundle 'Tabular'
+
+#迄今位置最好的自动VIM自动补全插件了吧
+#Vundle的这个写法，是直接取该插件在Github上的repo
+Bundle 'Valloric/YouCompleteMe'
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以上插件可以在&lt;a href=&quot;http://vim-scripts.org/vim/scripts.html&quot;&gt;vim-script.org&lt;/a&gt;找到源码和文档，&lt;a href=&quot;http://mattn.github.com/zencoding-vim/&quot;&gt;ZenCoding&lt;/a&gt;和&lt;a href=&quot;http://net.tutsplus.com/tutorials/other/vim-essential-plugin-easymotion/&quot;&gt;EasyMotion&lt;/a&gt;演示点链接,你会心动的。&lt;/p&gt;
+
+&lt;h2&gt;.vimrc配置&lt;/h2&gt;
+
+&lt;p&gt;因为配置不断在更新，所以放上我的配置的链接：&lt;a href=&quot;https://github.com/beiyuu/vimfiles/blob/master/_vimrc&quot;&gt;.vimrc配置&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2&gt;更多&lt;/h2&gt;
+
+&lt;p&gt;VIM在一开始会觉得非常不习惯，一定要坚持下去，收获的会更多，不仅仅是在装大侠方面的哦~&lt;/p&gt;
+
+&lt;p&gt;关于VIM的使用，这篇博客仅仅介绍了很小的一部分，网络上还有大量朋友总结的心得，常学常有收获：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://book.douban.com/subject/10599776/&quot;&gt;Practical Vim&lt;/a&gt;，强烈推荐的一本系统介绍VIM的书籍&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://overapi.com/vim/&quot;&gt;Vim Cheat Sheet&lt;/a&gt;，有VIM的各种助记图，可以作为桌面&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.vimer.cn/&quot;&gt;Vimer的程序世界&lt;/a&gt;，不错的站，博主持续钻研VIM各种技巧&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://hi.baidu.com/whqvzhjoixbbdwd/item/11315a5073667d0de6c4a5e9&quot;&gt;网友狂人收集的vim资料链接&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.rayninfo.co.uk/vimtips.html&quot;&gt;Best of Vim Tips&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.limboy.com/2009/05/30/vim-setting/&quot;&gt;面向前端开发者和TextMate粉丝的vim配置&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://scmbob.org/vim_fdm.html&quot;&gt;Vim代码折叠简介&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.longwin.com.tw/2009/03/choose-vim-color-scheme-2009/&quot;&gt;挑選 Vim 顏色(Color Scheme)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://chrome.google.com/webstore/detail/vimium/dbepggeogbaibhgnhhndojpepiihcmeb&quot;&gt;vimium&lt;/a&gt;，用VIM的操作习惯来控制Chrome的插件&lt;/li&gt;
+&lt;/ul&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
+   <title>CMD 模块定义规范</title>
+   <link href="http://xvfeng.me/posts/Common-Module-Definition"/>
+   <updated>2013-03-01T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/Common-Module-Definition</id>
+   <content type="html">&lt;p&gt;在 SeaJS 中，所有 JavaScript 模块都遵循 CMD（Common Module Definition） 模块定义规范。该规范明确了模块的基本书写格式和基本交互规则。&lt;/p&gt;
+
+&lt;p&gt;在 CMD 规范中，一个模块就是一个文件。代码的书写格式如下：&lt;/p&gt;
+
+&lt;p&gt;define(factory);
+define Function
+define 是一个全局函数，用来定义模块。&lt;/p&gt;
+
+&lt;p&gt;define define(factory)&lt;/p&gt;
+
+&lt;p&gt;define 接受 factory 参数，factory 可以是一个函数，也可以是一个对象或字符串。&lt;/p&gt;
+
+&lt;p&gt;factory 为对象、字符串时，表示模块的接口就是该对象、字符串。比如可以如下定义一个 JSON 数据模块：&lt;/p&gt;
+
+&lt;p&gt;define({ &amp;ldquo;foo&amp;rdquo;: &amp;ldquo;bar&amp;rdquo; });
+也可以通过字符串定义模板模块：&lt;/p&gt;
+
+&lt;p&gt;define(&amp;lsquo;I am a template. My name is .&amp;rsquo;);
+factory 为函数时，表示是模块的构造方法。执行该构造方法，可以得到模块向外提供的接口。factory 方法在执行时，默认会传入三个参数：require、exports 和 module：&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  // 模块代码&lt;/p&gt;
+
+&lt;p&gt;});
+define define(id?, deps?, factory)&lt;/p&gt;
+
+&lt;p&gt;define 也可以接受两个以上参数。字符串 id 表示模块标识，数组 deps 是模块依赖。比如：&lt;/p&gt;
+
+&lt;p&gt;define(&amp;lsquo;hello&amp;rsquo;, [&amp;lsquo;jquery&amp;rsquo;], function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  // 模块代码&lt;/p&gt;
+
+&lt;p&gt;});
+id 和 deps 参数可以省略。省略 id 参数时，SeaJS 在加载时会用模块文件的访问路径作为模块标识。省略 deps 参数时，SeaJS 会自动提取 factory 函数中的 require(&amp;lsquo;string&amp;rsquo;) 来获取模块依赖。&lt;/p&gt;
+
+&lt;p&gt;在开发阶段，推荐不要手写 id 和 deps 参数，因为这两个参数可以在构建阶段通过工具自动生成。&lt;/p&gt;
+
+&lt;p&gt;注意：带 id 和 deps 参数的 define 用法不属于 CMD 规范，而属于 Modules/Transport 规范。&lt;/p&gt;
+
+&lt;p&gt;require Function
+require 是 factory 函数的第一个参数。&lt;/p&gt;
+
+&lt;p&gt;require require(id)&lt;/p&gt;
+
+&lt;p&gt;require 是一个方法，接受 模块标识 作为唯一参数，用来获取其他模块提供的接口。&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports) {&lt;/p&gt;
+
+&lt;p&gt;  // 获取模块 a 的接口
+  var a = require(&amp;lsquo;./a&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;  // 调用模块 a 的方法
+  a.doSomething();&lt;/p&gt;
+
+&lt;p&gt;});
+注意：在开发时，require 的书写需要遵循一些 简单约定。&lt;/p&gt;
+
+&lt;p&gt;require.async require.async(id, callback?)&lt;/p&gt;
+
+&lt;p&gt;require.async 方法用来在模块内部异步加载模块，并在加载完成后执行指定回调。callback 参数可选。&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  // 异步加载一个模块，在加载完成时，执行回调
+  require.async(&amp;lsquo;./b&amp;rsquo;, function(b) {
+    b.doSomething();
+  });&lt;/p&gt;
+
+&lt;p&gt;  // 异步加载多个模块，在加载完成时，执行回调
+  require.async([&amp;lsquo;./c&amp;rsquo;, &amp;lsquo;./d&amp;rsquo;], function(c, d) {
+    c.doSomething();
+    d.doSomething();
+  });&lt;/p&gt;
+
+&lt;p&gt;});
+注意：require 是同步往下执行，require.async 则是异步回调执行。require.async 一般用来加载可延迟异步加载的模块。&lt;/p&gt;
+
+&lt;p&gt;require.resolve require.resolve(id)&lt;/p&gt;
+
+&lt;p&gt;使用模块系统内部的路径解析机制来解析并返回模块路径。该函数不会加载模块，只返回解析后的绝对路径。&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports) {&lt;/p&gt;
+
+&lt;p&gt;  console.log(require.resolve(&amp;lsquo;./b&amp;rsquo;));
+  // ==&gt; http://example.com/path/to/b.js&lt;/p&gt;
+
+&lt;p&gt;});
+这可以用来获取模块路径，一般用在插件环境或需动态拼接模块路径的场景下。&lt;/p&gt;
+
+&lt;p&gt;exports Object
+exports 是一个对象，用来向外提供模块接口。&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports) {&lt;/p&gt;
+
+&lt;p&gt;  // 对外提供 foo 属性
+  exports.foo = &amp;lsquo;bar&amp;rsquo;;&lt;/p&gt;
+
+&lt;p&gt;  // 对外提供 doSomething 方法
+  exports.doSomething = function() {};&lt;/p&gt;
+
+&lt;p&gt;});
+除了给 exports 对象增加成员，还可以使用 return 直接向外提供接口。&lt;/p&gt;
+
+&lt;p&gt;define(function(require) {&lt;/p&gt;
+
+&lt;p&gt;  // 通过 return 直接提供接口
+  return {
+    foo: &amp;lsquo;bar&amp;rsquo;,
+    doSomething: function() {};
+  };&lt;/p&gt;
+
+&lt;p&gt;});
+如果 return 语句是模块中的唯一代码，还可简化为：&lt;/p&gt;
+
+&lt;p&gt;define({
+  foo: &amp;lsquo;bar&amp;rsquo;,
+  doSomething: function() {};
+});
+上面这种格式特别适合定义 JSONP 模块。&lt;/p&gt;
+
+&lt;p&gt;特别注意：下面这种写法是错误的！&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports) {&lt;/p&gt;
+
+&lt;p&gt;  // 错误用法！！!
+  exports = {
+    foo: &amp;lsquo;bar&amp;rsquo;,
+    doSomething: function() {};
+  };&lt;/p&gt;
+
+&lt;p&gt;});
+正确的写法是用 return 或者给 module.exports 赋值：&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  // 正确写法
+  module.exports = {
+    foo: &amp;lsquo;bar&amp;rsquo;,
+    doSomething: function() {};
+  };&lt;/p&gt;
+
+&lt;p&gt;});
+提示：exports 仅仅是 module.exports 的一个引用。在 factory 内部给 exports 重新赋值时，并不会改变 module.exports 的值。因此给 exports 赋值是无效的，不能用来更改模块接口。&lt;/p&gt;
+
+&lt;p&gt;module Object
+module 是一个对象，上面存储了与当前模块相关联的一些属性和方法。&lt;/p&gt;
+
+&lt;p&gt;module.id String&lt;/p&gt;
+
+&lt;p&gt;模块的唯一标识。&lt;/p&gt;
+
+&lt;p&gt;define(&amp;lsquo;id&amp;rsquo;, [], function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  // 模块代码&lt;/p&gt;
+
+&lt;p&gt;});
+上面代码中，define 的第一个参数就是模块标识。&lt;/p&gt;
+
+&lt;p&gt;module.uri String&lt;/p&gt;
+
+&lt;p&gt;根据模块系统的路径解析规则得到的模块绝对路径。&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  console.log(module.uri);
+  // ==&gt; http://example.com/path/to/this/file.js&lt;/p&gt;
+
+&lt;p&gt;});
+一般情况下（没有在 define 中手写 id 参数时），module.id 的值就是 module.uri，两者完全相同。&lt;/p&gt;
+
+&lt;p&gt;module.dependencies Array&lt;/p&gt;
+
+&lt;p&gt;dependencies 是一个数组，表示当前模块的依赖。&lt;/p&gt;
+
+&lt;p&gt;module.exports Object&lt;/p&gt;
+
+&lt;p&gt;当前模块对外提供的接口。&lt;/p&gt;
+
+&lt;p&gt;传给 factory 构造方法的 exports 参数是 module.exports 对象的一个引用。只通过 exports 参数来提供接口，有时无法满足开发者的所有需求。 比如当模块的接口是某个类的实例时，需要通过 module.exports 来实现：&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  // exports 是 module.exports 的一个引用
+  console.log(module.exports === exports); // true&lt;/p&gt;
+
+&lt;p&gt;  // 重新给 module.exports 赋值
+  module.exports = new SomeClass();&lt;/p&gt;
+
+&lt;p&gt;  // exports 不再等于 module.exports
+  console.log(module.exports === exports); // false&lt;/p&gt;
+
+&lt;p&gt;});
+注意：对 module.exports 的赋值需要同步执行，不能放在回调函数里。下面这样是不行的：&lt;/p&gt;
+
+&lt;p&gt;x.js&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  // 错误用法
+  setTimeout(function() {
+    module.exports = { a: &amp;ldquo;hello&amp;rdquo; };
+  }, 0);&lt;/p&gt;
+
+&lt;p&gt;});
+y.js&lt;/p&gt;
+
+&lt;p&gt;define(function(require, exports, module) {&lt;/p&gt;
+
+&lt;p&gt;  var x = require(&amp;lsquo;./x&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;  // 无法立刻得到模块 x 的属性 a
+  console.log(x.a); // undefined&lt;/p&gt;
+
+&lt;p&gt;});
+module.destroy Function&lt;/p&gt;
+
+&lt;p&gt;在模块系统中注销当前模块。&lt;/p&gt;
+
+&lt;p&gt;有时候我们需要重新加载某个模块，这时可以：&lt;/p&gt;
+
+&lt;p&gt;// 通过 url 拿到模块
+var mod = seajs.cache[uri];&lt;/p&gt;
+
+&lt;p&gt;// 从模块系统中销毁掉
+mod.destroy();&lt;/p&gt;
+
+&lt;p&gt;// 这时会重新加载文件
+seajs.use(uri, callback);
+小结
+这就是 CMD 模块定义规范的所有内容。经常使用的 API 只有 define, require, require.async, exports, module.exports 这五个。其他 API 有个印象就好，在需要时再来查文档，不用刻意去记。&lt;/p&gt;
+
+&lt;p&gt;与 RequireJS 的 AMD 规范相比，CMD 规范尽量保持简单，并与 CommonJS 和 Node.js 的 Modules 规范保持了很大的兼容性。通过 CMD 规范书写的模块，可以很容易在 Node.js 中运行，后续会介绍。&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Life's fucking expensive</title>
+   <link href="http://xvfeng.me/posts/Lift%27s-fucking-expensive"/>
+   <updated>2013-02-26T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/Lift's-fucking-expensive</id>
+   <content type="html">&lt;p&gt;入职第一天。&lt;/p&gt;
+
+&lt;p&gt;早上的情形和上次北京实习的第一天如出一辙。九点到公司，同事一个还没来。&lt;/p&gt;
+
+&lt;p&gt;进了门，坐在门口沙发等人来安排。&lt;/p&gt;
+
+&lt;p&gt;等了大概一个半小时，零散着有一两个同事来到。其余的就是各种送快递的，还有清洁阿姨。于是做了一上午的门卫。&lt;/p&gt;
+
+&lt;p&gt;不过搞清楚了一个问题。这里的大办公室原来不是一家的，而是由至少三家公司，都是十人左右的小团队，而且都由老外带队。我们只是其中的三分之一。&lt;/p&gt;
+
+&lt;p&gt;意味着同事少了三分之二。到晚上才知道，我是这里唯一的实习生。&lt;/p&gt;
+
+&lt;p&gt;说说标题。有感而发。&lt;/p&gt;
+
+&lt;p&gt;简单列举这几天的开销：&lt;/p&gt;
+
+&lt;p&gt;机票（深圳-上海） – RMB 580.00
+房租（押一付三） – RMB 4000.00
+宽带（三个月） – RMB 450.00
+日用品(床单被套洗涤) – RMB 300.00
+公交卡（押金20+50） – RMB 70.00
+…
+首先是机票，深圳到上海的火车只有两趟K字头的，普通硬卧价格在人名币410元左右，需花费18+小时。机票实际价格400元，加上燃油附加及机场建设180元，耗时2个小时15分钟。&lt;/p&gt;
+
+&lt;p&gt;实习多次，第一次真正开始考虑租房问题。也真正见识到了魔都的房价。个人比较喜欢安静，故在网上找单间的出租房。但网上大多数是合租的，且价格至少在2000元。由于无法确认室友的情况，故开始时一直没有考虑合租。公司地点位于静安区，听闻为上海较为重要区域，故房价不低。要找个价格合适，且上班耗时在1小时内的房子更是困难。&lt;/p&gt;
+
+&lt;p&gt;无奈只得“求助”于房屋中介。和高中同学一起出门，被前一家中介约到了现住房子附近的某个小区。但由于位置原因，没有见得最终房子。在打算撤离之际，试了试附近的一家中介公司。立马带我们去了2个人家。两户的户主都是上海本地人，也都是两室一厅的房子，自己人住一间，另外的空出来一间租出来。前面一家的价格是1200元每月，房子较旧，而且有很重的味道。第二家，也就是现在住的一家，是一对退休的上海夫妇的房子。主卧出租，1000元每月。房子条件还不错，包水电。&lt;/p&gt;
+
+&lt;p&gt;中介在一旁，我给出了答复：回头我跟家里人商量下再做决定。&lt;/p&gt;
+
+&lt;p&gt;还故意找中介要了张名片，交代如果自己回头考虑好了，通过电话联系中介来订房。&lt;/p&gt;
+
+&lt;p&gt;和中介离开房子走到路口，借故离开。马上回到刚才的人家里，才知户主已经给同学塞了纸条，注明：勿找中介。&lt;/p&gt;
+
+&lt;p&gt;都懂的。&lt;/p&gt;
+
+&lt;p&gt;最后等中介走了，省了各自的中介费，还要了50元的价，最后定价950元每月。&lt;/p&gt;
+
+&lt;p&gt;交三押一，自己手上的钱已远远不够了，只得再找家里寄了3000元过来。加上之前手上的一点点积蓄，一共4000元，交给了房东。实在话，从家里过来这边，一毛钱都还没赚，一下就交了这么多钱，怪心疼的。虽说没有之前每次缴的一万多学费多，但现在还找家里有了这么多钱，也不好受。&lt;/p&gt;
+
+&lt;p&gt;接下来还是各种花钱，宽带，一下交三个月的，被套，生活用品啥的。房东要求下买了两个盆，我都不知道怎么去分配使用。。最后证明我买的圆形脸盆还不行，得方的。老人家坚持帮我拿去换，于是10几块两个的盆子一下被换成了30多块的。&lt;/p&gt;
+
+&lt;p&gt;今天第一天出来，也第一次跟同事出去吃午餐。进了家面馆，看了价目直接无语。最便宜的面都要18块一碗，吃饭就更贵了。没法活了。&lt;/p&gt;
+
+&lt;p&gt;从公司出门，回来和早上不一样，晚上坐了地铁，大概步行需要一刻钟。之前在北京走到地铁站只要十分钟。但是两者相比较起来，这边的走路就要愉悦多了。一是因为北京的空气真的很差，走在外面本能的不舒服；二来公司所在地附近的建筑和巷子都比较有特色。晚上的路灯也都亮了起来，而且路上车和人都不多。同样是一个人走在路上，心情会好很多。感觉不像是在赶着回家，而是在某个旅游小镇里旅游，观光。&lt;/p&gt;
+
+&lt;p&gt;一共6站路，跑了不到15分钟，刷卡一看，少了4块。我去，习惯了北京几毛钱公交2块地铁的人真没法接受这个。&lt;/p&gt;
+
+&lt;p&gt;最后谈谈今天的工作感受吧。十一点自己才被同事安排着随便坐了个地方，任务也直接没有。据说CEO RONAN同志因为打网球受伤，2天后才能回。没任务，也没交代。CTO同志过来问了问之前面试的题目，问做的怎么样。意思是叫我接着做。之前完成的时候题目也是基本没看懂的，这下回来还得接着弄，他们也不给下指导，还真累。。&lt;/p&gt;
+
+&lt;p&gt;琢磨了半天终于整出来了点什么，但需要用Git来提交。之前还真么在github上和其他人协作过，尼玛还真不会。branch, remote, merge一大堆之前只是听过没玩过的概念一下子要全用上了，于是今天一天都是在恶补git了。。&lt;/p&gt;
+
+&lt;p&gt;明天估计还得接着来，，git是能一天两天掌握的么？这样算来估计一段时间内是没法做出点什么东西了，坑爹。。&lt;/p&gt;
+
+&lt;p&gt;尼玛就不能有个mentor给带带？水平实在是有限，求不开除。&lt;/p&gt;
+
+&lt;p&gt;压力大的厉害。&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>The Making Of Fastbook An Html5 Love Story</title>
+   <link href="http://xvfeng.me/posts/the-making-of-fastbook-an-html5-love-story"/>
+   <updated>2013-01-12T00:00:00+08:00</updated>
+   <id>http://xvfeng.me/posts/the-making-of-fastbook-an-html5-love-story</id>
+   <content type="html">&lt;p&gt;在开始 Sencha 的开发之前，我们对 web 开发抱有一个希望：希望现代应用程序的开发只需要一个浏览器，而不需要其他的任何环境，另外加上一组足够强大的开发框架和强大的编码工具。以上三件武器在手，我们相信开发者一定可以开发出用户喜欢的应用程序。HTML5 的出现，为程序员提供了更多的开发工具，使得他们可以将浏览器看作应用的开发平台而不是页面渲染引擎。开发者们迅速抓住这个机会，并发布了大量基于桌面端和移动端的程序-充分利用了 HTML5 的特性，使用 web 标准建立强大的应用程序。&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;p&gt;因此，当马克 扎克伯格谈到&lt;a href=&quot;http://techcrunch.com/2012/09/11/mark-zuckerberg-our-biggest-mistake-with-mobile-was-betting-too-much-on-html5/&quot; target=&quot;_blank&quot;&gt; HTML5 还没准备好&lt;/a&gt;时，我们对此不以为然。&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;aligncenter size-full wp-image-1990&quot; alt=&quot;fastbook&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2013/01/fastbook.png&quot; width=&quot;508&quot; height=&quot;339&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.geekpark.net/read/view/157633&quot; target=&quot;_blank&quot;&gt;HTML5 不是 Facebook 移动客户端速度慢的原因&lt;/a&gt;。我们非常清楚现代智能手机的浏览器能够做什么， HTML5 又提供了如何丰富的特性。我们同时看到了运行最新版 iOS 5 和 Android 4.1 移动设备上性能的逐步提升以及 HTML5 应用跑分(测试浏览器对 HTML5 兼容性)的不断增加。但最重要的还是，我们看到了我们的客户(这里指使用 Sencha 的开发者)正在做什么和他们使用 HTML5 所创造出的神奇事物。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.theregister.co.uk/2012/09/14/facebook_html_5_vs_native_apps/&quot; target=&quot;_blank&quot;&gt;Facebook 的移动客户端开发团队遇到问题&lt;/a&gt;是因为他们碰到了一个常见的错误模式。在 Sencha 中，我们为程序员提供了开发框架和工具，因此我们对于建立 HTML5 项目的开发团队有相当成熟的经验。当一个团队在使用 HTML5 时遇到问题，通常是因为他们使用传统的&amp;lsquo;网页&amp;rsquo;开发方式去开发应用程序，而且在实际开发过程中没有使用正确的工具和架构。这正是我们质疑 Facebook HTML5 应用的地方。导致程序经常出现加载缓慢，读取用户新动态卡屏的症状。&lt;/p&gt;
+
+&lt;p&gt;在任何场合下，我们都想去证明 HTML5 实际上已经准备好了。因此我们决定利用空余时间重新设计 Facebook HTML5 移动客户端中最具挑战性的部分。今天，我们推出了 Sencha&lt;a href=&quot;http://fb.html5isready.com/&quot; target=&quot;_blank&quot;&gt;Fastbook &lt;/a&gt;。从技术的角度验证了 HTML5 到底可以多块，并演示 HTML5 是如何去化解这些程序开发中的最大挑战。&lt;/p&gt;
+
+&lt;p&gt;下面四分钟的简短视频将会展示 HTML5 客户端在面对原生 iOS 和 Android Facebook 客户端时的精彩表现（分别对应 iOS 5.2 版本和 1.9.12 版本，也是到 12 月 10 日为止的最新版本）。文章的剩余部分将会介绍 Fastbook 制作的技术细节。&lt;/p&gt;
+
+&lt;object width=&quot;480&quot; height=&quot;400&quot; classid=&quot;clsid:d27cdb6e-ae6d-11cf-96b8-444553540000&quot; codebase=&quot;http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,40,0&quot; align=&quot;middle&quot;&gt;&lt;param name=&quot;src&quot; value=&quot;http://player.youku.com/player.php/sid/XNDg5OTAyNzA4/v.swf&quot; /&gt;&lt;param name=&quot;quality&quot; value=&quot;high&quot; /&gt;&lt;param name=&quot;allowscriptaccess&quot; value=&quot;sameDomain&quot; /&gt;&lt;param name=&quot;allowfullscreen&quot; value=&quot;true&quot; /&gt;&lt;embed width=&quot;480&quot; height=&quot;400&quot; type=&quot;application/x-shockwave-flash&quot; src=&quot;http://player.youku.com/player.php/sid/XNDg5OTAyNzA4/v.swf&quot; quality=&quot;high&quot; allowscriptaccess=&quot;sameDomain&quot; allowfullscreen=&quot;true&quot; align=&quot;middle&quot; /&gt;&lt;/object&gt;
+
+
+&lt;h4&gt;细看“原生” Facebook 客户端&lt;/h4&gt;
+
+
+&lt;p&gt;扎克伯格抱怨 HTML5 “还没准备好”，理解这句话最好的方式莫过于深入挖掘最新版本的 Facebook iOS 原生客户端。我们将 iPhone 连接到一个 web 调式代理中( web debugging proxy )，观察客户端发送数据时的 HTTP 流量变化。令我们吃惊的是，客户端的很多地方依然是原始的 HTML 页面编写。最新动态部分，也就是我们所看到的用户资料页面，全部被移到了本地。但是程序的很多其他界面仍然是发送简单的 HTTP GET 请求连接到 m.facebook.com 。现在我们看到的“原生” Facebook 应用实际上是&amp;lsquo; web/原生&amp;rsquo;混合应用：既有基于 m.facebook.com 渲染显示在 UIWebView 里的内容，也有原生的 Objective C 组件混合在一起。&lt;/p&gt;
+
+&lt;h4&gt;重新编写“最新动态”( News Feed )页面&lt;/h4&gt;
+
+
+&lt;p&gt;在了解了原生 Facebook 客户端是如何工作之后，我们很快就清楚了，体验中最难建立的就是“最新动态”部分。同时处理由上亿的用户，使用完全无法预料的方式所创造的无限数量的内容，即便对于那些最有经验的开发者来说也是一个很难解决的问题，不管他们所使用的是什么技术。&lt;/p&gt;
+
+&lt;p&gt;我们迫切的想要确定，在使用 HTML5 重构应用时，“最新动态”部分能够拥有很流畅的体验。为了使它变得可能，我们添加了一些新的特性，并把它们添加到了现有的 Sencha 触控框架中。&lt;/p&gt;
+
+&lt;p&gt;我们从实现一个能够处理未知大小的无限列表组件开始。在实际的可视屏幕区域内，建立了很少的几组 DOM 节点。这些节点将会被持续的用于循环渲染下一条或者上一条所需数据。这样一来，不管储存的数据有多大，内存的开销始终被控制的很小。实现这个部分非常简单，但是要使它在复杂多变的情况下，例如加载最新动态时，仍然能够保证速度才是最大的挑战。瓶颈来源于浏览器执行的核心进程：布局以及渲染。&lt;/p&gt;
+
+&lt;p&gt;建立( Sencha )框架的经验告诉我们，一些小的演示组件单独执行时能够正常工作，但是把它放入一个比较大型的应用中时表现通常比较糟糕。随着应用的逐渐变大，DOM 树也随之增加；浏览器计算布局就会需要更长时间，性能也随之下降。另外，随着可视图层数量增加，页面对于每个图层的渲染性能也会急剧下降。&lt;/p&gt;
+
+&lt;p&gt;因此，Fastbook 客户端是第一使用全新的&amp;ldquo;沙盒容器( Sandbox Container )&amp;rdquo;技术，将复杂的试图按照编程的方式进行分离，然后分别渲染到各自的 iframe 里，将 DOM 树分成了多个部分。从应用层面来讲，这个特殊的容器不需要额外的触发器，因此对于开发者来说会比较容易（这意味着任何被添加到容器的组建都会被自动沙盒化）。但它同样会产生一些开销：事件，定位，样式化，JavaScript 代码也需要在父窗口与子沙盒之间通过代理才能执行。这个过程非常复杂，如果没有一个强大适用的架构框架，实践起来将会非常困难。沙盒允许布局单独存在，因而能够保证主 DOM 树足够的轻。为了避免后者带来的不便，我们在使用沙盒时必须足够小心。&lt;/p&gt;
+
+&lt;p&gt;对于 Fastbook，最新动态，时间轴，故事板视图都是被&lt;a href=&quot;http://www.geekpark.net/read/view/160168&quot; target=&quot;_blank&quot;&gt;单独的放在沙盒中&lt;/a&gt;。所有的 DOM 元素都被高频复用于渲染所需数据，回流( reflow )是不可避免的。关键在于让这个过程变得更加简单。沙盒使得最新动态部分执行起来很像单独存在，但实际上它仍然是整个大 DOM 树的一部分。&lt;/p&gt;
+
+&lt;p&gt;接着，我们在任务队列( TaskQueue )中加入了最近在 Sencha Touch 中引入的特性-深度整合。任务队列避免了 DOM 读取和写入的交叉，清除了所有不必要的布局。这个与新的沙盒技术相结合，能够显著的减少复杂视图(例如时间轴和最新动态)下的布局开销。&lt;/p&gt;
+
+&lt;p&gt;我们添加了一个准们负责所有动画和事件的类-动画队列( AnimationQueue ), 它同样负责将比较繁重的任务推迟到 CPU 有空闲时间时才执行。它的功能类似交通警察，为不同的操作指定优先级并确保程序时刻保持待命。当程序在执行动画时，它会停止优先级比较低的功能。当程序空闲时，动画队列开始执行那些被中断的任务。例如，为了提升滑动性能，最新动态页面高速滑动时，图片加载和渲染将会被中断，直到程序空闲下来才执行。通过使用高速计时器( timer ),繁重的任务会以一种非阻塞的方式逐渐执行。这能确保触摸事件总是能被最快的执行。&lt;/p&gt;
+
+&lt;p&gt;另外一方面，有一些你不想被中断的函数类，例如从动态列表获取更多数据。为了确保这些不会是滑动变动缓慢，我们使用了 Web Workers 。这样我们就可以从界面( UI )线程中移除 XHR/RPC 通信。使用&lt;a href=&quot;http://www.w3.org/TR/workers/&quot; target=&quot;_blank&quot;&gt; Web Workers &lt;/a&gt;储存网络请求开销，执行 JSON 编译与反编译可以更大程度的利用现在的多核设备。&lt;/p&gt;
+
+&lt;p&gt;以上是设计 Fastbook 时的技术要点，这些技术的运用让基于 web 技术的开放标准能够被更好的执行。同时，我们也非常激动，能够有这样一个机会向你展示如何巧妙的应用 HTML5 去建立这样的应用。&lt;/p&gt;
+
+&lt;h4&gt;加分项&lt;/h4&gt;
+
+
+&lt;p&gt;在分析 Facebook 原生 iOS 应用的网络性能时，我们发现了一个很有意思的地方: API 请求返回了大量拥有原始数据到客户端。连接到&lt;a href=&quot;https://graph.facebook.com/graphql&quot; target=&quot;_blank&quot;&gt; https://graph.facebook.com/graphql &lt;/a&gt;渲染最新动态元素的 API 调用就是一个很典型的例子。平均下来，每 10 项内容就会有产生 15-20KB 的经过 gzip 压缩的 JSON 数据，但实际上，以上部分都不是渲染实际视图所需要的。&lt;/p&gt;
+
+&lt;p&gt;为了演示哪些方法可以优化网络流量，我们从 Facebook FQL API 返回的原始数据中添加了一个具有过滤和解析功能的代理服务器。结果是，渲染同样的页面，Fastbook 所请求的数据远小于原生客户端:在最新动态内容中，同样的内容可以减少 10% 左右。代理的使用，同样可以让我们将那些例如内容的格式化和过滤这些普通的任务卸载至服务器端进行操作。&lt;/p&gt;
+
+&lt;p&gt;同样，你可能会注意到&lt;a href=&quot;http://www.geekpark.net/read/view/156827&quot; target=&quot;_blank&quot;&gt;原生 iOS 客户端&lt;/a&gt;与 Fastbook 在滑动减速时间上的不同。在原生客户端里，滑动至少会持续 3s.但我们决定将动画渐变时间减少到 1.4s 。这样不仅可以加快内容读取速度，同时能够在用户阅读现有内容的时候为加载更多地内容提供额外的空闲时间。&lt;/p&gt;
+
+&lt;h4&gt;亲手实践&lt;/h4&gt;
+
+
+&lt;p&gt;Fastbook 并不能使 Facebook 客户端的替代品。它只是一个技术的展示，目的在于告诉开发者能够通过正确的使用 HTML5，相关框架和工具来做什么。如果你还在怀疑 HTML5 是否准备好了，你可以自己在现代的智能手机（我们推荐 iOS 5 或者 Android 4.1 以上系统）上测试使用&lt;a href=&quot;http://fb.html5isready.com/&quot; target=&quot;_blank&quot;&gt; Fastbook &lt;/a&gt;.你会发现只要你将浏览器看作是应用开发平台，巧妙的运用 HTML5 的特性，再复杂的应用也能使用 HTML5 来开发。&lt;/p&gt;
+
+&lt;p&gt;译文来源：&lt;a href=&quot; http://www.sencha.com/blog/the-making-of-fastbook-an-html5-love-story/&quot; target=&quot;_blank&quot;&gt;the-making-of-fastbook-an-html5-love-story&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;原文由&lt;a href=&quot;http://coursegarden.com&quot; target=&quot;_blank&quot;&gt;本人&lt;/a&gt;发表在&lt;a href=&quot;http://geekpark.net&quot; target=&quot;_blank&quot;&gt;极客公园&lt;/a&gt;，链接地址：&lt;a href=&quot;http://www.geekpark.net/read/view/168794&quot; target=&quot;_blank&quot;&gt;Fastbook 的制作过程 : 邂逅 HTML5&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>哪些场合不宜用菲茨定律去衡量用户体验标准</title>
+   <link href="http://xvfeng.me/posts/fittss-law-and-user-experience"/>
+   <updated>2012-12-16T15:16:00+08:00</updated>
+   <id>http://xvfeng.me/posts/fittss-law-and-user-experience</id>
+   <content type="html">&lt;p&gt;菲兹定律的核心观点是，移动一个点到目标所需的时间随之与目标的之间的距离和尺寸的变化而变化。外行看来，距离越近，目标越大，点击目标也就越快。这个很容易理解，实践起来也不难，去驳斥这个简单而又明显的观点似乎也没有多大意义。&lt;!--more--&gt;&lt;/p&gt;
+
+
+&lt;p&gt;但是，在你将菲兹定律应用到设计过程中每个像素之前，请站在一个交互设计师的角度去思考一些可能会遇到的问题。&lt;/p&gt;
+
+&lt;h3&gt;&lt;strong&gt;菲兹定律第一条：放大目标&lt;/strong&gt;&lt;/h3&gt;
+
+
+&lt;p&gt;菲兹定律所表达出的最明显的观点可能就是“目标越大，接近目标就越快”。&lt;/p&gt;
+
+&lt;p&gt;优势：&lt;/p&gt;
+
+&lt;p&gt;建立较大的目标有利于交互，同时也能够让你充分利用界面的每一个像素。&lt;/p&gt;
+
+&lt;p&gt;例如，某些网站没有将按钮或者链接的可点击区域应用到整个目标上，结果导致用户需要更加精确的移动鼠标才能达到对应链接，从而延长了导航所需的时间。菲兹定律建议充分使用好每个可供利用的像素，从而扩大可点击区域， 使目标变得更大。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1950&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1950&quot; alt=&quot;Fitts_Buttons&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/01-Fitts_Buttons.png&quot; width=&quot;500&quot; height=&quot;86&quot; /&gt; 左边的目标浪费了屏幕上宝贵的像素。右边的目标通过充分利用每个像素使自身变得更大，也能够更快的被点击。(左边例子:Firefox,右边例子:Apple)[/caption]&lt;/p&gt;
+
+&lt;p&gt;通过增加按钮的绝对或者相对尺寸来使得目标更容易点击这一技巧，正在被那些把&lt;strong&gt;交流&lt;/strong&gt;放在首要位置的设计师充分利用，意在达到鼓励用户实施某个特定操作的目的。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1951&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1951&quot; alt=&quot;LibreOffice&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/02-LibreOffice.jpg&quot; width=&quot;500&quot; height=&quot;174&quot; /&gt; 相对和绝对尺寸在以交流为先的界面中的应用。(示例:LibreOffice)[/caption]&lt;/p&gt;
+
+&lt;p&gt;尽管在设计一个鼓励用户行为的按钮还有很多需要考虑的因素，菲兹定律提供了一个需要最先考虑的理论基础。&lt;/p&gt;
+
+&lt;p&gt;劣势：&lt;/p&gt;
+
+&lt;p&gt;当然，大目标不好的地方在于它可以打破界面平衡，并且会很容易占据有限屏幕的很多区域。然而即使在你有足够可供利用区域的时候，你也没有必要通过一直增大目标区域来使得目标更容易被点击。原因在于&lt;a href=&quot;http://sixrevisions.com/usabilityaccessibility/improving-usability-with-fitts-law/&quot;&gt;按钮的预计可用性随尺寸大小的增大呈非线性增长&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1952&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1952&quot; alt=&quot;Non-linear-progression&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/03-Non-linear-progression-low-res.jpg&quot; width=&quot;500&quot; height=&quot;298&quot; /&gt; 因此，当你将一个按钮增大10%, 它会更容易被点击，但是如果你将一个已经很大的按钮增大10%, 就可用性而言不会获得太大提升。[/caption]&lt;/p&gt;
+
+&lt;h3&gt;&lt;strong&gt;菲兹定律第二条：减少鼠标移动&lt;/strong&gt;&lt;/h3&gt;
+
+
+&lt;p&gt;另外一个可以从菲兹定律得出的观点是：“目标越近越容易被点击”。&lt;/p&gt;
+
+&lt;p&gt;优势：&lt;/p&gt;
+
+&lt;p&gt;如果你将用户日常操作最容易点击的链接和按钮放在一起，而不是将分布在界面的各个地方，这样你就可以通过减少鼠标移动的距离来使交互变得更快。&lt;/p&gt;
+
+&lt;p&gt;考虑下这个例子，&lt;a href=&quot;http://unity.ubuntu.com/&quot;&gt;Ubuntu Unity&lt;/a&gt;社区的界面。它允许你通过使用文字和文件类型两种不同的筛选器来查找各种资源。你可以从下面的图片中看到这两个过滤器之间相隔的距离有多远。文字筛选器被放在了屏幕的最上方，而文件类型筛选器却被放在了最下方。&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;aligncenter size-full wp-image-1953&quot; alt=&quot;Unity&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/04-Unity.jpg&quot; width=&quot;500&quot; height=&quot;306&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;为了实现更加流畅的工作流，这样的布局不是最优的。在执行搜索查询时，用户通常是通过连续使用文本框区域和文件类型筛选器来获取搜索结果。在这里为了实现查找目的，鼠标需要移动很远的距离。事实上，将文件类型图标放在文本框区域的旁边，可以减少鼠标的移动来提升交互速度（同时也可以节省竖直方向的空间）。&lt;/p&gt;
+
+&lt;p&gt;劣势：&lt;/p&gt;
+
+&lt;p&gt;严格的按照这个方式来布局将会与很多其他重要的设计理念相冲突，例如&lt;strong&gt;根据功能和内容来划分和分组不同的类&lt;/strong&gt;。它的目的在于呈现一个更加干净整洁的界面，同时也能使目标更加容易被发现。&lt;/p&gt;
+
+&lt;p&gt;注意下面的图片中各个工具是如何按照小的具有意义的分组来排列：在这里表哥工具被放在左边，插入工具被放在右边。&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;aligncenter size-full wp-image-1954&quot; alt=&quot;Numbers-Toolbar&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/05-Numbers-Toolbar-1.png&quot; width=&quot;500&quot; height=&quot;70&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这样用户可以在脑海中构建一张如何获取某个信息或者工具的图片。相反，如果你仅仅根据它们所使用的频率来进行分析，你可能会选择一种最少化鼠标移动的方案。结果只会打破界面的功能结构。&lt;/p&gt;
+
+&lt;p&gt;另外一个与菲兹定律发生冲突的理念是“提供一个干净整洁的界面”。为了简化界面，一些网站使用下拉列表来对内容进行分组。尽管有很多设计师对其可用性&lt;a href=&quot;http://www.useit.com/alertbox/20001112.html&quot;&gt;提出异议&lt;/a&gt;(这个超出了本文讨论的范围),下拉列表仍被视为一种视觉优雅而又节省空间，简化界面，更好组织界面的方法。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1955&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1955&quot; alt=&quot;blurb-1&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/06-blurb-1.jpg&quot; width=&quot;500&quot; height=&quot;258&quot; /&gt; 下拉列表可以帮助你更好的组织内容和清理界面。(范例:Blurb.com)[/caption]&lt;/p&gt;
+
+&lt;p&gt;菲兹定律不推荐使用下拉列表是因为它会增加很多的鼠标移动，导致用户无法通过在一条直线上移动光标来接近目标。用户首先需要点击或者将鼠标悬浮在下拉列表上，然后移动鼠标到列表项上（还有可能需要另一个子菜单）直到鼠标最终到达目标。但是考虑到它所带来的好处，下拉列表所导致的长距离鼠标移动这一缺陷可以得到弥补。&lt;/p&gt;
+
+&lt;p&gt;第三个可能让你对菲兹定律表示不服的观点就是“&lt;strong&gt;建立一个容错的界面&lt;/strong&gt;”, 目的在于能够防范或者减小错误造成的损失。&lt;/p&gt;
+
+&lt;p&gt;菲兹定律建议将元素依次排列从而减少鼠标移动，同时节省页面空间。然而，节省了那一点点空间却可能导致用户点击错误的元素，特别是在那些元素边界不易区分或者焦点元素没有被显著区分的情况下。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1956&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;389&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1956&quot; alt=&quot;Input_Mistake&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/07-Input_Mistake.jpg&quot; width=&quot;389&quot; height=&quot;92&quot; /&gt; 错误随时有可能发生：界面元素的位置可以导致或者组织错误发生。(范例:Codebeamer.com)[/caption]&lt;/p&gt;
+
+&lt;p&gt;但是请注意，&lt;strong&gt;由具有导航功能的元素产生错误的影响没有由分享或者编辑功能产生的影响严重&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;如果我点击了错误的链接，我可以简单的点击“返回”按钮来挽回错误。因此，当链接出现在头部或者侧边栏时，在它们之间留出空白区域不会造成真正的伤害。&lt;/p&gt;
+
+&lt;p&gt;当我们在使用导航时，事情会变得更加让人讨厌。尤其在播放视频，音频文件或者显示文档时，意外点击“暂停”，“关闭”，“下一个”，“清除播放列表”按钮，用户需要更多的努力才能恢复到错误操作时的状态。&lt;/p&gt;
+
+&lt;p&gt;然而，在涉及到编辑和分享功能时，错误可能是具有毁灭性的。例如点击屏幕上的“发送”，“打印”，“删除”，“下载”，“上传”，“刻录”，“剪切”，“关闭”，“关机”，“连接”，“断开连接”，“接受”或者“拒绝”按钮时，动作可能造成更加严重的后果，并且无法被轻易撤销&lt;/p&gt;
+
+&lt;p&gt;因此，在处理带有编辑或者分享功能的元素时，&lt;strong&gt;你应该采取更多的措施&lt;/strong&gt;来减少错误发生的几率并降低错误导致后果的严重性:&lt;/p&gt;
+
+&lt;ul&gt;
+    &lt;li&gt;提供更简单的撤销方式（一个选项：&lt;a href=&quot;http://www.thepicky.com/internet/recall-email-that-is-send-undo-send-in-gmail/&quot;&gt;撤销按钮&lt;/a&gt;）&lt;/li&gt;
+    &lt;li&gt;按钮之间尝试留出空隙&lt;/li&gt;
+    &lt;li&gt;元素边缘区分清晰&lt;/li&gt;
+    &lt;li&gt;高亮焦点元素&lt;/li&gt;
+    &lt;li&gt;将按钮分组摆放，&lt;a href=&quot;http://www.codinghorror.com/blog/2010/03/the-oppos&amp;lt;/li&amp;gt; &amp;lt;p&amp;gt;ite-of-fitts-law.html&quot;&gt;最小化错误发生时的影响&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;举个例子来说明上面列表中的最后一项：如果我意外的将“获取邮件”按钮看成并点击了“编写邮件”按钮，结果可能不会太严重，但是不要将“回复”和“删除”放在一起。&lt;/p&gt;
+
+&lt;p&gt;将操作分成&lt;strong&gt;两个步骤&lt;/strong&gt;是一种可以阻止错误发生的特殊处理方式。两步操作方式应用并不广泛。原因在于两个步骤会使双手或者鼠标点击时需要移动更远的距离，但它们却可以使操作变得更加的安全。简单说来，就是当你可以在无意中分开进行两次操作的时候，你几乎不可能无意识的同时进行两次连续操作。例如滑动-删除这个例子。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1957&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1957&quot; alt=&quot;swipe-to-delete&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/08-swipe-to-delete.jpg&quot; width=&quot;500&quot; height=&quot;176&quot; /&gt; 首先滑动，然后删除。虽然二者单独存在时很容易被触发，但是放在一起就形成了一种防止错误操作机制。（范例：Timelogger App）[/caption]&lt;/p&gt;
+
+&lt;p&gt;我能想象我可能会意外的将手指从左边滑到右边，或者点击了某个按钮，但是却很难连续的执行以上两个操作。&lt;/p&gt;
+
+&lt;p&gt;两步操作方法主要被应用在移动设备上，原因在于用户在更容易在这些设备上产生错误操作。此外，它还可以节省更多的空间。因为在第一个步骤发生之前，第二个步骤的按钮没有必要出现在可视区域内。&lt;/p&gt;
+
+&lt;p&gt;因此，不管是滑动/触摸，滑动/滑动，还是触摸/触摸，两步操作方式从一定程度上比直接呈现一个很大的按钮操作起来更加困难，但是这些“不便之处”在某些需要安全操作的场景下可能会更加实用。&lt;/p&gt;
+
+&lt;h3&gt;&lt;strong&gt;菲兹定律第三条：Avoid Muscular Tension&lt;/strong&gt;&lt;/h3&gt;
+
+
+&lt;p&gt;&lt;a href=&quot;http://www.smpp.northwestern.edu/savedLiterature/FittsLawPapers/FittsLaw%20as%20Research.Design.Tool.in.HCI.MacKenzie.pdf&quot;&gt;菲兹定律性能索引&lt;/a&gt;的目的就是量化人机交互系统的信息容量。换句话讲，它旨在根据执行特定命令所需物理动作数量，对输入方法进行评估。&lt;/p&gt;
+
+&lt;p&gt;优势&lt;/p&gt;
+
+&lt;p&gt;在使用体积庞大的设备工作时，简单的输入法的优势会愈加明显。最显而易见的例子就是墙面触摸屏，这些设备通常被部署在专业性比较强的环境，用于建立，展示并管理大量的数据。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1958&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1958&quot; alt=&quot;Vertical_Touchscreen&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/09-Vertical_Touchscreen.jpg&quot; width=&quot;500&quot; height=&quot;511&quot; /&gt; 菲兹定律在墙面触控屏上的应用。（范例：Perceptive Pixel）[/caption]&lt;/p&gt;
+
+&lt;p&gt;使用竖直摆放的屏幕时，一直保持手臂处于笔直的状态会迅速导致三角肌疲劳，并导致输入错误或者迫使用户放弃操作。因而，避免使用复杂费力的操作方法有助于以上设备的交互优化。&lt;/p&gt;
+
+&lt;p&gt;劣势&lt;/p&gt;
+
+&lt;p&gt;某些难以执行的操作方法通常可以防止错误的发生。例如，移动设备通常被随身携带在口袋里，这样一来也导致容易意外触发某些命令。在那样的场合下，&lt;strong&gt;高精度操作方法（&lt;/strong&gt;&lt;strong&gt;high-precision input&lt;/strong&gt;&lt;strong&gt;）&lt;/strong&gt;使用了更加复杂的操作来进行部署，从而确保一个命令不会被意外执行。因此，这些操作同样是方便用户了解某项命令严重性的一种方法。例如，iPhone的关机操作：&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1959&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;240&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1959&quot; alt=&quot;iphone-off&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/10-iphone-off-1.jpg&quot; width=&quot;240&quot; height=&quot;344&quot; /&gt; 根据后果的严重性来选择UI元素：滑动控制用于危险命令，按钮用于普通命令。（范例：iPhone截图: Outsideinnovation.com）[/caption]&lt;/p&gt;
+
+&lt;p&gt;关机或者重启设备通常是比较重要的命令；一旦被触发就无法撤销。因此，它们通常采用操作精细度比较高的滑动效果。相反，撤销操作不会造成太大影响，因此被做成了一个按钮。&lt;/p&gt;
+
+&lt;p&gt;需要更加精细操作的滑动控制和手势操作是最安全但同时也是最乏味的操作方法。因而，出于平衡安全性和可用性双重考虑，他们通常默认用来执行频率较高的危险操作，例如解锁，关机，设定系统偏好，执行管理员任务或者关闭闹钟声音。而当涉及到一些应该快速且经常被执行的危险命令时，例如编辑，删除或者移动元素时，经过良好排版的两部操作方法通常会更加合适。尽管它不能提供同样程度的安全性，至少可以在相对安全的程度下保持了易操作性。&lt;/p&gt;
+
+&lt;p&gt;另外一个需要使用复杂操作的理由是&lt;strong&gt;手势操作可以节省屏幕空间这一天然优势&lt;/strong&gt;。根据菲兹定律性能优化索引，手势（包括一定程度上的拖拽）会产生更多的&lt;a href=&quot;http://www.billbuxton.com/fitts91.html&quot;&gt;肌肉紧张&lt;/a&gt;（muscular tension），这也是为什么菲兹定律会优先考虑光标点击操作。手势的优势在于它不需要UI控制就可以被触发。&lt;/p&gt;
+
+&lt;p&gt;例如你在&lt;a href=&quot;http://deviantart.com/&quot;&gt;deviantART&lt;/a&gt;上管理你的作品。为了添加某个元素到你的喜爱列表里，你不需要点击某个按钮。在你开始拖动一张照片时，一个可供放置元素的面板将会出现。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1960&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1960&quot; alt=&quot;Deviantart-1&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/11-Deviantart-1.jpg&quot; width=&quot;500&quot; height=&quot;254&quot; /&gt; 拖拽提供了无需可视元素即可出发操作的功能。（范例：deviantART）[/caption]&lt;/p&gt;
+
+&lt;p&gt;因为不需要按钮或者一些其他的UI元素来触发某个功能，拖拽可以节省很多空间。不好的地方当然也很明显，它没有提供一个可视化的提示来表明他的存在（除非通过tooltips浮动层进行提示）。当受到屏幕尺寸的限制时，这些方法虽然操作起来很复杂，但实际也是必须的。&lt;/p&gt;
+
+&lt;h3&gt;&lt;strong&gt;菲兹定律第四条：利用主要像素（Exploit The Prime Pixels&lt;/strong&gt;&lt;strong&gt;）&lt;/strong&gt;&lt;/h3&gt;
+
+
+&lt;p&gt;主像素的理念就是某些像素需要比其他的像素更快被获取。角落和边缘是特别容易到达的地方。然而，在任何情况下，最快能够被获取的像素却是当前鼠标所在的位置。这个也被现代人机交互设计应用在了右键点击上下文菜单中。&lt;/p&gt;
+
+&lt;p&gt;优势&lt;/p&gt;
+
+&lt;p&gt;右键点击选中元素，鼠标点击处会出现上下文菜单，菜单提供了区分上下文的选项。这样做的好处是，你不需要移动鼠标很远才能到达界面上某个固定位置。上下文菜单分两种：&lt;strong&gt;线性菜单和径向，或饼形菜单。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;参考菲兹定律，很明显其更倾向于径向菜单。原因之一，楔形菜单的入口提供了更大的目标区域。原因之二，因为菜单是圆形的，光标移动到每个菜单入口的距离总是相同的。这个统一性允许用户建立一个高效的肌肉记忆。相反，在线性菜单中，只有最靠近初始光标位置的菜单入口才能被迅速点击。这也是为什么那些被经常操作的动作需要预留在固定的位置。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1961&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1961&quot; alt=&quot;Menus&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/12-Menus1-e1350578121106.jpg&quot; width=&quot;500&quot; height=&quot;250&quot; /&gt; 菲兹定律更倾向于径向菜单。（左侧示例：OneNote 2013, 右侧示例： Firefox）[/caption]&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;将元素放在屏幕边缘和角落是因为屏幕框架在它到达位置之后会引导并定位光标。&lt;/p&gt;
+
+&lt;p&gt;（The benefits of placing items at the corners and edges of the screen are that the screen frame guides and positions the cursor once it reaches that location.）&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1962&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;500&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1962&quot; alt=&quot;Fitts_Corners_and_Edges&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/13-Fitts_Corners_and_Edges-1a.jpg&quot; width=&quot;500&quot; height=&quot;170&quot; /&gt; 角落和边缘是主屏的固定区域。(示意图：Particletree)[/caption]&lt;/p&gt;
+
+&lt;p&gt;劣势&lt;/p&gt;
+
+&lt;p&gt;实证研究&lt;a href=&quot;http://www.donhopkins.com/drupal/node/100&quot;&gt;证实了关于径向上下文菜单与线性上下文菜单的假设&lt;/a&gt;，前者在查找时间和出错率上相比后者有一点点的优势。然而，当调查参与者被问到他们的主观偏好时，饼状菜单再也不那么受欢迎了。&lt;/p&gt;
+
+&lt;p&gt;虽然饼状菜单能够更好的适应菲兹定律，但是在某些场景下，其带来的劣势却远远超过它的优势。&lt;/p&gt;
+
+&lt;p&gt;其中一个问题在于&lt;strong&gt;当越来越多的菜单入口被添加时，圆形菜单的形状易使目标区域变小&lt;/strong&gt;。但我们可以通过移除多余的选项来解决这个问题，这样正好符合了&lt;a href=&quot;http://uxdesign.smashingmagazine.com/2012/02/23/redefining-hicks-law/&quot;&gt;Hick定律&lt;/a&gt;的理论。例如，如果一个菜单的入口不是仅应用到当前所选元素，或者可以从界面的其它地方被访问到，它们没有同样没有必要和上下文菜单放在一起（“剪切”，“复制”和“粘贴”通常仅仅适用于哪些被选中的区域，而“撤销”，“重做”，“新建文件”，“保存文件”，“打印文件”或者“放大/缩小”等却更适合放在固定的工具栏之中）。&lt;/p&gt;
+
+&lt;p&gt;另外一个管理很多选项的方式就是次级菜单。虽然这个可能包含在径向菜单之内，这么做会很快使整个屏幕变得混乱，并且看起来没有传统的线性菜单那样直观和整洁。这与线性菜单的一个特殊优势有关：它使通过次级菜单和入口分组实现层级关系变得更加简单。&lt;/p&gt;
+
+&lt;p&gt;[caption id=&amp;ldquo;attachment_1963&amp;rdquo; align=&amp;ldquo;aligncenter&amp;rdquo; width=&amp;ldquo;654&amp;rdquo;]&lt;img class=&quot;size-full wp-image-1963&quot; alt=&quot;Linear_Menu&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/12/14-Linear_Menu.png&quot; width=&quot;654&quot; height=&quot;108&quot; /&gt; 入口分组更容易在线形菜单上实现。(示例：Word 2013. 截图：PCPro.co.uk)[/caption]&lt;/p&gt;
+
+&lt;p&gt;最后一点，圆形菜单会占据更多的空间。这会导致两个问题：其一，它会使得所选对象变得模糊，并且在事件触发地点靠近屏幕边缘时出现在其他地方而不是光标当前所在位置。&lt;/p&gt;
+
+&lt;p&gt;因而，总结下来，在以下情况下你可以考虑线形上下文菜单：&lt;/p&gt;
+
+&lt;ul&gt;
+    &lt;li&gt;你需要混合很多选项，&lt;/li&gt;
+    &lt;li&gt;你需要使用次级菜单，&lt;/li&gt;
+    &lt;li&gt;你需要对菜单入口进行分组和排序，&lt;/li&gt;
+    &lt;li&gt;屏幕尺寸至关重要。&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;最后，对于屏幕的角落和边缘，针对鼠标操作设备时存在两个潜在的问题。在大尺寸屏幕上，光标移动所经过的像素数量可能会覆盖掉前面提到过的优势。同样，网页设计师不会从这个准则中得到任何好处。原因在于他们所有的内容（除了全屏模式下）都是在浏览器窗口下运行。这样他们根本无法利用屏幕边缘区域，而往往最需要选择的是一个更加紧密且集中的布局。&lt;/p&gt;
+
+&lt;p&gt;在处理到触摸屏幕等非鼠标操作的设备时，将界面元素放在屏幕的角落和边缘无法产生积极影响从而加速交互。甚至会造成不利的影响。在大尺寸屏幕上，用户需要经常的展开和收起手臂，从而容易很快感到疲劳。因此在大尺寸屏幕上，被频繁使用的工具应该做成可随意移动的对象。这样用户只需将这些工具放在自己喜欢或者靠近双手的位置，工作起来也会更加容易。这个也正好与菲兹定律的原则相符。&lt;/p&gt;
+
+&lt;h3&gt;&lt;strong&gt;结语&lt;/strong&gt;&lt;/h3&gt;
+
+
+&lt;p&gt;交互设计师和用户体验设计师所面临的难题是，他们必须同时考虑，权衡并结合用户体验的众多可控和非可控因素，才能最终建立最好的产品。菲兹定律试着提供更加容易量化和计算的准确值，去帮助用户界面设计师去做设计上的决择。&lt;/p&gt;
+
+&lt;p&gt;当然，我们可以通过一些数值去衡量一个界面的优劣，例如：读取某段数据鼠标点击的次数，导航所需要的时间；水平对齐界面所拥有更多竖直方向可利用像素数量，针对相应设备的显示方向的适应程度；最常被使用按钮的摆放位置，以及更少距离的光标移动。&lt;/p&gt;
+
+&lt;p&gt;界面应&lt;strong&gt;始终以人为本&lt;/strong&gt;，并保持平台一致性，更多的替用户着想，具备更加独特气质，更加容易把玩并且容易被发现。实际上我们很难简单的通过点击或者像素来衡量界面质量。菲兹定律中，高度精确且简化的数学方程，使得设计师们更加倾向于使用那些可控的方法。但需要注意的是，数学方程虽然可以帮助你提升用户体验，你只能把它当作工具而非准则来使用。&lt;/p&gt;
+
+&lt;p&gt;相反，你应该经过更多的讨论，优先站在人类学的角度，并且在条件允许的情况下，更多的使用菲兹定律去提升实际的用户体验。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h3&gt;&lt;strong&gt;扩展阅读&lt;/strong&gt;&lt;/h3&gt;
+
+
+&lt;p&gt;你可能会感兴趣的资源：&lt;/p&gt;
+
+&lt;ol&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.cs.umd.edu/class/fall2002/cmsc838s/tichi/fitts.html&quot;&gt;Fitts’ Law: Modeling Movement Time in HCI&lt;/a&gt;  菲兹定律大纲&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.smpp.northwestern.edu/savedLiterature/FittsLawPapers/Information%20Capacity%20of%20Human%20Motor%20System%20Controlling%20Ampltude%20of%20Movement.Paul.Fitts.pdf&quot;&gt;The Information Capacity of the Human Motor System in Controlling the Amplitude of Movement&lt;/a&gt; (PDF) Paul Fitts’s 于1954年发表在实验心理学期刊上发表的原文（Journal of Experimental Psychology）&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;http://d3rxqy8m5km8r7.cloudfront.net/features/visualizing-fittss-law/&quot;&gt;Visualizing Fitts’ Law&lt;/a&gt; 应用一系列的可视化图标来展示菲兹定律&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.smpp.northwestern.edu/savedLiterature/FittsLawPapers/FittsLaw%20as%20Research.Design.Tool.in.HCI.MacKenzie.pdf&quot;&gt;Fitts’s Law as a Research and Design Tool in Human-Computer Interaction&lt;/a&gt; (PDF) 关于更高效输入方法的探讨&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.donhopkins.com/drupal/node/100&quot;&gt;An Empirical Comparison of Pie vs. Linear Menus&lt;/a&gt; 针对饼形菜单与线形菜单之间在查询时间和错误率的可控实验测试&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.asktog.com/columns/022DesignedToGiveFitts.html&quot;&gt;A Quiz Designed to Give You Fitts&lt;/a&gt; 一个测试你对菲兹定律了解程度的小测验&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;译文出处：&lt;a href=&quot;http://www.coursegarden.con/&quot;&gt;CourseGarden&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;原文出处：&lt;a href=&quot;http://uxdesign.smashingmagazine.com/2012/12/04/fittss-law-and-user-experience/&quot;&gt;Smashing Magazine – When You Shouldn’t Use Fitts’s Law To Measure User Experience&lt;/a&gt; By&lt;a href=&quot;http://uxdesign.smashingmagazine.com/author/anastasios-karafillis/?rel=author&quot;&gt; Anastasios Karafillis&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;个人能力及精力有限，出错在所难免，欢迎指正。辛勤劳动，转载还请注明出处！&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>前端模版引擎</title>
+   <link href="http://xvfeng.me/posts/client-side-templating"/>
+   <updated>2012-12-12T23:36:00+08:00</updated>
+   <id>http://xvfeng.me/posts/client-side-templating</id>
+   <content type="html">&lt;p&gt;模版引擎在浏览器客户端中的应用正在变得越来越广泛。随着应用程序业务逻辑从服务端转移到客户端，以及MVC式设计模式的渐渐推广（使用的增多），模板也被鼓励用于浏览器客户端程序开发了。这个在过去被认为该由服务器端所作的事。但是现在，同样也可以在客户端开发中活力四射，大放光彩。&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;h3&gt;为何要使用它？&lt;/h3&gt;
+
+
+&lt;p&gt;通常而言，在视图中使用模板可以将语言标记与应用逻辑进行分离，同时能最大限度地提高代码复用性和可维护性。采用更接近输出语法的语言（例如HTML），你能快速清醒地完成正在做的事情。虽然模板能用来输出各种不同类型的文本，但基于HTML是我们在客户端开发时所需要的语言这一事实，此处我们就以HTML为例讲解。&lt;/p&gt;
+
+&lt;p&gt;时下的动态应用程序中，客户端需要经常更新用户界面（UI）。这项操作可以通过抓取服务器上的HTML代码片段来完成，这些片段能够被轻易的插入文档。但是这需要服务器提供支持返回这样代码片段（而不是返回完整的页面）的功能。而且，作为一个与标记打交道的客户端开发者，你所需要的是对整个模板的控制。你不需要懂Smarty、Velocity、ASP，或者一些不知名的服务端代码，也不需要处理那些更加糟糕的，臭名昭著的，遍布在HTML代码里的 ? 和 % 标签。&lt;/p&gt;
+
+&lt;p&gt;这里我们来看看一种新的替代品：基于客户端的模板引擎。&lt;/p&gt;
+
+&lt;h3&gt;初步印象&lt;/h3&gt;
+
+
+&lt;p&gt;为照顾初学者，这里我给出“模板”一词的定义。 这里 是来自foldoc的定义:&lt;/p&gt;
+
+&lt;blockquote&gt;“一个包含了各种参数，并能够由模版处理系统通过识别某些特定语法来替换这些参数的文档。”&lt;/blockquote&gt;
+
+
+&lt;p&gt;让我们一起观察这个例子，来看看一个最基本的模板是什么样子的：&lt;/p&gt;
+
+&lt;p&gt;如果你懂得HTML，也许会感觉似曾相识。它包含了一些含有占位标记的HTML标签。随后的代码中，我们将会用一些真实的数据来替换它。比如以下这个对象：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;   var data = {
+       &quot;title&quot;:&quot;Story&quot;,
+       &quot;names&quot;:[
+           {&quot;name&quot;:&quot;Tarzan&quot;},
+           {&quot;name&quot;:&quot;Jane&quot;}
+       ]
+   }&lt;/pre&gt;
+
+
+&lt;p&gt;结合了数据的模板所输出的结果应像下面的HTML代码所表示的样子：&lt;/p&gt;
+
+&lt;p&gt;模板和数据的分离，使得HTML的维护变得更加轻松。像更改标签，添加class这些修改只需要去改变模板里相应的标记。增加像 li 这样的重复元素也只需要一次修改就能搞定。&lt;/p&gt;
+
+&lt;h3&gt;模板引擎&lt;/h3&gt;
+
+
+&lt;p&gt;模板的语法（ 这样的占位标签所使用的格式）取决于你使用的模板引擎。引擎所关心的是如何解析模板，将占位标签（变量、函数、循环等）替换成提供给它们的数据。&lt;/p&gt;
+
+&lt;p&gt;一些模板引擎是无逻辑（logic-less）的。“无逻辑”不是说你只能在模板中使用简单的占位符，而是意味着这些逻辑性的功能只能由某些智能标签来完成（例如，数组迭代，条件式渲染等）。有些其他的引擎功能更多，可扩展性更强。这里不涉及细节，请问你自己，这个模板需要何种程度的逻辑控制。&lt;/p&gt;
+
+&lt;p&gt;尽管每种模板引擎都有自己的API，但你总是可以找到像 render() 和 compile()一类的方法。渲染过程就是将特定数据放入模板，生成最终结果的过程。换句话说，就是用特定数据替换占位标记。并且，如果模板中有某些生成逻辑，就一并执行它。编译一个模板也就是去解析那个模板，并将模板转换为JavaScript函数。模板中的逻辑部分被转换成普通的JavaScript语句后，数据就可以传进函数中，用一种经过优化的办法将零散的信息拼接起来。&lt;/p&gt;
+
+&lt;h3&gt;一个使用 Mustache 的例子&lt;/h3&gt;
+
+
+&lt;p&gt;以下示例可以使用 mustache.js 之类的模板引擎生成。这里使用了流行的Mustache 模板的语法。更多的说明，以及更多替代方案，我们稍后再说。首先来看一段生成某种结果的JavaScript代码：&lt;/p&gt;
+
+&lt;p&gt;现在我们想在网页中展示结果。使用纯JavaScript可以这么写：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;   document.body.innerHTML = result;&lt;/pre&gt;
+
+
+&lt;p&gt;这样就可以看到效果了！你也可以在自己的代码前加上Mustache脚本，试试浏览器生成效果：
+或者，你可以在 jsFiddle尝试。&lt;/p&gt;
+
+&lt;h3&gt;组织模板&lt;/h3&gt;
+
+
+&lt;p&gt;如果你跟我一样，大概也不会把HTML代码写成长长的一行吧。这样的代码不仅不便于阅读，维护起来也相当困难。理论上，模板能存放于单独的文件中，这样不仅可以拥有语法高亮的所有好处，而且可以为提高可读性，合适地调整HTML的行缩进。&lt;/p&gt;
+
+&lt;p&gt;但这种做法会导致另外一个问题。如果我们项目中的模板很多，那么我们并不想分别加载这么多的文件，因为这会触发许多的Ajax请求。这样不利于性能的提升。&lt;/p&gt;
+
+&lt;h4&gt;方案一：脚本标签&lt;/h4&gt;
+
+
+&lt;p&gt;一种常见的解决方案是把所有的模板放在一种有着特殊type属性的script标签中，例如type=&amp;ldquo;text/template&amp;rdquo;类型的脚本标签（浏览器不会解析渲染它）&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;&lt;script id=&quot;myTemplate&quot; type=&quot;text/x-handlebars-template&quot;&gt;// &lt;![CDATA[
+
+
+&lt;h1&gt;&lt;/h1&gt;
+
+
+&lt;ul&gt;
+           
+    &lt;li&gt;&lt;/li&gt;
+
+
+           &lt;/ul&gt;
+
+// ]]]]&gt;&lt;![CDATA[&gt;&lt;/script&gt;&lt;/pre&gt;
+
+
+&lt;p&gt;这样，你就可以把所有模板放在HTML文档中，阻止对模板所发出的额外Ajax请求。&lt;/p&gt;
+
+&lt;p&gt;这种脚本标签里面的内容可以在随后的JavaScript代码中作为模板使用。下面的代码示例中，使用了Handlebars模板引擎和一部分jQuery代码，并利用了前面提到的script 标签：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;  var template = $('#myTemplate').html();
+   var compiledTemplate = Handlebars.compile(template);
+   var result = compiledTemplate(data);&lt;/pre&gt;
+
+
+&lt;p&gt;你同样可以在 jsFiddle上尝试它。&lt;/p&gt;
+
+&lt;p&gt;这里的结果和前面的Mustache示例所生成的结果相同。Handlebars引擎也可以使用Mustache的模板，因而我们这里使用了同一个模板。这里有个（很重要的）不同，那就是Handlebars使用中间步骤生成了HTML结果。引擎先将模板编译成一个JavaScript函数（我们在此把它叫做 compiledTemplate ）。之后在函数执行时把数据作为它的唯一参数，并输出最终结果。&lt;/p&gt;
+
+&lt;h4&gt;方案2：预编译的模板&lt;/h4&gt;
+
+
+&lt;p&gt;虽然让单个函数进行模板渲染似乎很方便，但将编译和渲染过程相互分离还是有显著的好处的。最重要的是，这样的程序结构可以让服务端执行编译过程。我们可以在服务器端（如使用Node.js）执行JavaScript，有些引擎也支持模板的预编译。&lt;/p&gt;
+
+&lt;p&gt;总的来说，就是我们可以编写出并提供含有多个预编译模板的单个JavaScript文件（像 compiled.js）。整个过程粗看上去就像这样：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;   var myTemplates = {
+       templateA: function() { â€|.},
+       templateB: function() { â€|.};
+       templateC: function() { â€|.};
+   };&lt;/pre&gt;
+
+
+&lt;p&gt;然后，程序代码中我们只需要用数据填充这些预编译的模板就行：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;   var result = myTemplates.templateB(data);&lt;/pre&gt;
+
+
+&lt;p&gt;这么做通常要比前面讨论过的，把代码直接放入 script 标签的性能要好，因为这样客户端能跳过编译部分。我们接下来可以看到，依靠你的应用程序栈，这个目标并不难实现。&lt;/p&gt;
+
+&lt;h4&gt;Node.js的例子&lt;/h4&gt;
+
+
+&lt;p&gt;所有的模板预编译脚本至少应完成如下几点：&lt;/p&gt;
+
+&lt;p&gt;• 读取模板文件；
+• 编译模板；
+• 把生成的JavaScript合成一个或多个文件。&lt;/p&gt;
+
+&lt;p&gt;下面的这个基本Node.js脚本（使用Hogan.js模板引擎）做到了这些：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;01  var fs = require('fs'),
+02      hogan = require('hogan.js');
+03   
+04  var templateDir = './templates/',
+05      template,
+06      templateKey,
+07      result = 'var myTemplates = {};';
+08   
+09  fs.readdirSync(templateDir).forEach(function(templateFile) {
+10   
+11      template = fs.readFileSync(templateDir + templateFile, 'utf8');
+12      templateKey = templateFile.substr(0, templateFile.lastIndexOf('.'));
+13   
+14      result += 'myTemplates[&quot;'+templateKey+'&quot;] = ';
+15      result += 'new Hogan.Template(' + hogan.compile(template, {asString:true}) + ');'
+16   
+17  });
+18   
+19  fs.writeFile('compiled.js', result, 'utf8');&lt;/pre&gt;
+
+
+&lt;p&gt;这段代码读取 templates/ 文件夹下的所有文件，编译模板，并将其写入到compiled.js文件中。&lt;/p&gt;
+
+&lt;p&gt;注意，上面的代码未经任何优化，而且不包含任何错误处理代码。尽管如此，它完成了任务。这表明预编译模板并不需要很多代码。&lt;/p&gt;
+
+&lt;h3&gt;方案3：异步模块定义（AMD）和REQUIREJS&lt;/h3&gt;
+
+
+&lt;p&gt;异步模块定义（AMD）正越来越受到重视。通常而言，分离的模块是组织应用程序的更好方法。一个流行的模块加载器是RequireJS。在模块定义逻辑中，指定了的依赖关系会得到解析，成为可用的实际模块（或者工厂）。&lt;/p&gt;
+
+&lt;p&gt;在模板的上下文环境中，RequireJS有个让你用来指定文本式依赖关系的&amp;ldquo;文本&amp;rdquo;插件。异步模块定义（AMD）的相应代码默认将会作为JavaScript代码来对待，不过模板只是个文本文件（HTML文件是纯文本），因此我们使用这个插件。代码如下：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;01  define(['handlebars', 'text!templates/myTemplate.html'],function(Handlebars, template) {
+02   
+03      var myModule = {
+04   
+05          render: function() {
+06   
+07              var data = {&quot;title&quot;:&quot;Story&quot;, &quot;names&quot;:[{&quot;name&quot;:&quot;Tarzan&quot;}, {&quot;name&quot;:&quot;Jane&quot;}]};
+08              var compiledTemplate = Handlebars.compile(template);
+09              return compiledTemplate(data);
+10   
+11          }
+12      };
+13   
+14      return myModule;
+15  });&lt;/pre&gt;
+
+
+&lt;p&gt;这么做的好处（仅仅是）有了把模板分拆放在不同文件的能力。这种做法是不错，但它需要发送额外的Ajax请求来获取模板，在客户端编译模板仍然是必须的。不过，这些额外请求可以用RequireJS附带的 r.js 优化器消除。这个优化器解析依赖关系，把模板（或者其他依赖项）“内联（inline）”在模块定义中，大幅度减少了请求的数量。&lt;/p&gt;
+
+&lt;p&gt;上述过程所缺少的预编译步骤可以用多种方法解决。一种容易想到的办法是让优化器也预编译模板（就像我们可以为 r.js写个这样的插件）。不过这样一来模块的定义也需要改变，因为我们可能在优化前就会使用到模板那串字符，也有可能在优化后使用到模板函数。也许这项工作处理起来并不是十分困难，要么就需要检查this的变量类型，要么就需要把这层逻辑抽象出来（写在插件或者是写作程序里）。&lt;/p&gt;
+
+&lt;h3&gt;监视模板&lt;/h3&gt;
+
+
+&lt;p&gt;在方案2和方案3中，我们能把模板看作未编译的源文件，甚至能做得更好。就像CoffeeScript、Less、或者SCSS文件。我们能在开发时监视这些模板文件，在文件更改时重新编译他们。就像把CoffeeScript编译为JavaScript一样。这样，我们总是在与预编译的模板打交道，优化器也可以在构建过程中毫不费力地内联预编译的模板。&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;01  define(['templates/myTemplate.js'], function(compiledTemplate) {
+02   
+03      var myModule = {
+04   
+05          render: function() {
+06   
+07              var data = {&quot;title&quot;:&quot;Story&quot;, &quot;names&quot;:[{&quot;name&quot;:&quot;Tarzan&quot;}, {&quot;name&quot;:&quot;Jane&quot;}]};
+08              return compiledTemplate(data);
+09   
+10          };
+11      };               
+12   
+13      return myModule;
+14  }&lt;/pre&gt;
+
+
+&lt;h3&gt;性能上的考虑&lt;/h3&gt;
+
+
+&lt;p&gt;使用客户端模板重新渲染UI的更新部分已是司空见惯之事。然而性能最佳的方法仍然是通过将最初的页面整体进行加载。使用这种做法，浏览器可以直接渲染HTML页面，而无需解析任何JavaScript代码，也不必发出额外的数据请求。这对于那些既是动态，又需要尽可能最大化初始加载速度的页面而言，是一项挑战。然后，最理想的是模板已开发，能重用于客户端中，这样服务器能提供最佳性能，而且维护性仍然很好。&lt;/p&gt;
+
+&lt;p&gt;这里需要考虑到两个问题：&lt;/p&gt;
+
+&lt;p&gt;• 程序的那些部分主要是动态的？而哪些部分需要减少初始化加载的时间？
+• 需要把处理过程交给客户端？还是让服务器做这样的繁重工作？&lt;/p&gt;
+
+&lt;p&gt;这个问题只有在实际测试了几种不同的方法才能回答。不过，使用预编译模板，客户端通常不会在渲染过程中遭罪。并且在客户端、服务端复用模板的情况下，你会发现无逻辑性模板语法更为通用。&lt;/p&gt;
+
+&lt;h3&gt;结语&lt;/h3&gt;
+
+
+&lt;p&gt;我们已经看到了客户端模板的诸多好处，包括：&lt;/p&gt;
+
+&lt;p&gt;• 应用服务器和API善于提供纯数据（就像JSON），使用客户端模板是最合适不过的了。
+• HTML与JavaScript与客户端开发者的技能结合更为自然。
+• 使用模板能加强对分离表现和逻辑的实践。
+• 模板能充分预编译，能充分缓存，只需要刷新以从服务器取回实际数据。
+• 把渲染过程从服务端移到客户端能极大地提高性能。&lt;/p&gt;
+
+&lt;p&gt;我们已经看到（客户端）模板的好几个方面了。希望你对这个概念有更好的理解，了解为何需要使用它。&lt;/p&gt;
+
+&lt;p&gt;原文链接：&lt;a href=&quot;http://coding.smashingmagazine.com/2012/12/05/client-side-templating/&quot;&gt;client-side-templating&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;原创译文，辛勤劳动，转载还请注明！&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>是时候扔掉那本讲JavaScript“闭包”的书了</title>
+   <link href="http://xvfeng.me/posts/closing_the_book_on_javascript_closures"/>
+   <updated>2012-12-12T00:58:00+08:00</updated>
+   <id>http://xvfeng.me/posts/closing_the_book_on_javascript_closures</id>
+   <content type="html">&lt;p&gt;来看看JavaScript中的一个强大特性-闭包。简单来讲，闭包是一个在函数内部建立的变量，并且在函数执行完并退出后依旧存在。(a closure is a variable, created inside a function, which continues to exist after the function has finished executing.)
+理解好闭包概念可以帮助你避免IE浏览器的内存泄露问题，同时能够在建立JavaScript对象时充分利用私有（局部）变量和方法。&lt;/p&gt;
+
+
+&lt;!--more--&gt;
+
+
+&lt;p&gt;&lt;strong&gt;你好，闭包&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;下面是一个可以很好的说明这个概念的例子。&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint&quot;&gt;try {
+alert(closureDemo);
+}
+catch(err) {
+alert(&quot;closureDemo doesn't exist yet, hit 'OK', we'll call the function that creates it and try again&quot;);
+}
+var theDemo = function () {
+closureDemo = &quot;This is a closure! This string is displayed in an alertBox outside of the function which created it.&quot;;
+}
+theDemo();
+alert(closureDemo);
+&lt;/pre&gt;
+
+
+&lt;p&gt;仔细阅读代码，你会发现我们正尝试在一个变量还未定义之前就访问它。我们将这个变量放在一个try/catch语句里面，从而确保知道将要发生的这个错误不会生成一条错误的信息。当然，closureDemo目前为止还不存在，所以catch语句将会被执行。之后我们定义了一个函数并创建closureDemo变量, 然后调用函数本身: theDemo(). 最后我们会得到一条closureDemo所代表的字符串，整个过程执行成功。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;因为我们在theDemo函数内部建立了一个闭包，所以最后一个弹出语句能够执行。这里函数能够被执行是因为JavaScript有一个很奇怪的特性，在你未使用var关键字声明一个变量时，这个变量会变成全局变量。因此，你可能经常会在未意识到的情况下建立了一个闭包，造成的原因而仅仅是你很容易忘记在代码内部声明的变量之前添加关键词var.&lt;/p&gt;
+
+
+
+
+&lt;p&gt;你可以使用下面的button来进行测试:&lt;/p&gt;
+
+
+&lt;p&gt;/&lt;strong&gt; Button &lt;/strong&gt;/&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;子函数与闭包&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;这时候你可能会在嘀咕，“那有怎样”？&lt;/p&gt;
+
+
+
+
+&lt;p&gt;如果仅仅是因为IE浏览器下使用它时容易发生内存泄露，实际上还是有很多的理由去了解JavaScript如何以及为什么会建立闭包。（这样做一个不好的地方就是有一句告诫：永远也不要使用子函数，因为它们会建立闭包。）这句话可能是对的，但是也有可能是错的。它完全取决于你如何编写你的代码。下面我们来看一个子函数/闭包。&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint&quot;&gt;theParent = function () {
+theChild() = function() {
+alert(&quot;I'm the baby!);
+}
+}
+theParent();
+theChild();
+&lt;/pre&gt;
+
+
+&lt;p&gt;现在任何一个经过传统训练的程序员在看了这段代码之后都会认为”theChild()”只能在”theParent()”内部执行。但是在JavaScript中却不是这样。不信请点击下面的按钮，结果是”theChild()”将不用经过theParent()而被立即执行.&lt;/p&gt;
+
+
+&lt;p&gt;/&lt;em&gt; Button &lt;/em&gt;/&lt;/p&gt;
+
+&lt;p&gt;回答这个为什么会发生的答案当然就是因为我们把函数当成了变量来定义而且没有使用var关键字，因此theChild变成了全局变量并形成闭包。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;同样一个却没有建立闭包的例子如下&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint&quot;&gt;var theParent = function () {
+var theChild() = function() {
+alert(&quot;I'm the baby!);
+}
+}
+theParent();
+theChild();
+&lt;/pre&gt;
+
+
+&lt;p&gt;在这个例子当中，在脚本最后调用的theChild()将会生成一个错误。原因是要执行theChild()函数，调用语句必须在theParent()函数内部。&lt;/p&gt;
+
+
+&lt;p&gt;&lt;strong&gt;不只是全局变量&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;一个闭包不仅仅只是一个全局变量。看看下面这个在高端JavaScript代码里流行出现的一个对象。&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint&quot;&gt;var myObject = function() {
+var privateVar = 'This variable is private!';
+var privateFunction = function() {
+alert('this function is Private!');
+}
+return {
+showPrivateVar : function () {
+alert(privateVar);
+},
+changePrivateVar : function(val) {
+privateVar = val;
+},
+callPrivateFunc : function() {
+privateFunction();
+}
+}
+}();
+&lt;/pre&gt;
+
+
+&lt;p&gt;理解这段代码如何工作的关键就是去看代码的第一行和最后一行，中间部分暂时不看。&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint&quot;&gt;var myObject = function() {} ();&lt;/pre&gt;
+
+
+&lt;p&gt;你可以看到我们在这里建立了一个myObject的变量，它是一个不接受任何参数的函数。花括号只是代码的去向，结尾部分包含另一对括号(), 这对结尾的括号告诉JavaScript在解析完它之后立即执行函数。这个的意思就是myObject并不等于你所看到的函数，而是那个函数所返回的内容。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;那么JavaScript建立了这个函数，执行它，并将返回内容放在myObject内部。这里返回的内容是一个包含了三个方法(showPrivateVar, changePrivateVar, callPrivateFunc)的JavaScript对象。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;这里最酷的地方在于privateVar和privateFunction只能通过哪些被返回的方法去访问。那个创建它们的函数已经不再存在，只有函数的结果存在，并且哪些函数能够获取privataVar和privateFunction。原因在于它们形成了闭包，实际存在但是却可以通过很有限的方式被访问。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;这里如果我们调用myObject.showPriavateVar(),我们将会得到一个返回“这是一个私有变量的”弹出框。同样地当我们调用myObject,privateVar(‘new value’), 我们可以改变privateVar的值，这也同样是唯一能够改变privateVar值得一种方式。最后我们可以通过myObject.callPrivateFunc()来调用私有函数。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;因此闭包相对于意外创建全局变量（潜在影响其它同名变量）和IE浏览器下导致内存泄露来讲，显得更加有用。当你开始从编写简单和进阶的JavaScript代码转到完全面向对象的程序时，闭包可以保住你保护好重要的变量和方法，避免被你自己或者其它你所使用的modules和库影响。&lt;/p&gt;
+
+
+&lt;p&gt;&lt;strong&gt;Closure的使用&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;因此，JavaScript闭包的第一原则就是尽量使用在函数的内部使用var关键字，除非你是故意的创建闭包，这个原则也同样适用于在使用声明变量式的语法去创建函数的时候。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;第二个原则就是在任何你需要隐藏一个对象的变量和方法时使用闭包。这是一个相对比较高级的技巧，但是却很容易被掌握，并且最终会在建立真正面向对象的程序时起到很大作用。&lt;/p&gt;
+
+
+
+
+&lt;p&gt;原文链接：&lt;a title=&quot;Closing_The_Book_On_Javascript_Closures&quot; href=&quot;http://www.hunlock.com/blogs/Closing_The_Book_On_Javascript_Closures&quot; target=&quot;_blank&quot;&gt;Closing_The_Book_On_Javascript_Closures&lt;/a&gt;&lt;/p&gt;
+
+
+
+
+&lt;p&gt;原创译文，转载请注明！&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
+   <title>自适应与响应式布局</title>
+   <link href="http://xvfeng.me/posts/adaptive-vs-responsive-layouts-and-optimal-form-field-labels"/>
+   <updated>2012-11-10T01:21:00+08:00</updated>
+   <id>http://xvfeng.me/posts/adaptive-vs-responsive-layouts-and-optimal-form-field-labels</id>
+   <content type="html">&lt;p&gt;什么样的站点或者项目更适合使用自适应（固定分割点）布局而什么样的站点又更适合响应式（流动网格）布局呢？响应式布局从理论上来讲一般要优于自适应布局，但是在某些特定条件下自适应布局相反却可能是一种更加实用的解决方案。&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;p&gt;自适应布局给了你更多设计的空间，因为你只用考虑几种不同的状态。而在响应式布局中你却得考虑上百种不同的状态。虽然绝大部分状态差异较小，但仍然也算做差异。它使得把握设计最终效果变得更难，同样让响应式布局更加的难以测试和预测。但同时说难，这也算是响应式布局美的所在。在考虑到表层级别不确定因素的过程中，你也会因此更好的掌握一些基础知识。当然，要做到精确到像素级别的去预测设943*684像素视区里的样子是很难的，但是你至少可以很轻松的确定它是能够正常工作的，因为页面的基本特性和布局结构都是根据语义结构来部署的。&lt;/p&gt;
+
+&lt;p&gt;自适应布局有它的使用价值，在于它能够提供一种更加实用的解决方案，使得项目的实现成本更低，并且更加易于测试。一个自适应布局可以被看作是响应式布局的一个更加廉价的替代品，会在项目资源紧缺的情况下更具有吸引力。在处理已有站点的情况下更是如此，因为大多数时候完全重构是不可行的。这时候，自适应布局就可以作为一个很好（更加便于管理）的开始了。Dan Cederholm 在他的文章”&lt;a href=&quot;http://simplebits.com/notebook/2011/08/19/adapted/&quot;&gt;Adapted&lt;/a&gt;”专门讨论了这个问题。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/11/responsive-screens.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1806&quot; title=&quot;responsive-screens&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/11/responsive-screens.jpg&quot; alt=&quot;&quot; width=&quot;500&quot; height=&quot;188&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;有一种更倾向于自适应布局而不是响应式布局的情况就是在需要处理文字时，特别是在需要严格控制文字长度和避免出现单独标题文字的时候。Trent Walton提出了一些针对这个问题的一些&lt;a href=&quot;http://trentwalton.com/2012/06/19/fluid-type/&quot;&gt;不错的观点&lt;/a&gt;。实际上，通过使用em改变文字尺寸，你可以在响应式布局里确保可读文字的长度（每行50-75个字符）。这也留下了存在单独文字标题的隐患。有的人或许会说这是网页的一种本能，并且认为寻求一种能够完全控制页面标题方案是很有意义的。在这些情况下，使用&lt;a href=&quot;http://fittextjs.com/&quot;&gt;FItText&lt;/a&gt;这个插件可以帮助我们解决这个问题，从而帮助我们避免孤立现象的出现。&lt;/p&gt;
+
+&lt;p&gt;响应式设计和自适应设计的定义有多种。&lt;a href=&quot;http://www.zeldman.com/2011/07/06/responsive-design-i-dont-think-that-word-means-what-you-think-it-means/&quot;&gt;Jeffrey Zeldman&lt;/a&gt;谈到，把“响应式设计”这个词严格的限制为一种技术手段被证明过于局限。我们的总体目标就是去解决设备多样化问题，因此也必须在定义响应式（网页）设计的时候将固定分割这一技巧包括进去。Aaron Gustafson把&lt;a href=&quot;http://blog.easy-designs.net/archives/2011/11/16/on-adaptive-vs-responsive-web-design/&quot;&gt;响应式设计定义&lt;/a&gt;为“建立一个从样式和功能上同时满足用户需求的界面”的过程，它可以作为“流动网格系统，流动图像/多媒体和媒体请求”的替代含义。在这里我故意限制了讨论布局方式的范围，并着重的讲解响应式布局和自适应布局的实际使用过程。在问题中出现的定义，答案里已经全部提到了，响应式布局等于流动网格布局，而自适应布局等于使用固定分割点来进行布局。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;保持一致性的跨设备用户界面（UI）与遵循设备约定的用户界面&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;在针对不同的设备设计一个产品时（例如Netflix或者Pandora），什么更加重要：商标和界面的一致性，还是遵循设备约定的设计指南来设计（例如在iPhone, Android,电视机，Xbox上分别设计通用的体验）?&lt;/blockquote&gt;
+
+
+&lt;p&gt;有三个重要的因素你必须考虑：你的产品重心，用户对UI的熟悉程度，界面和功能在不同平台上的差异。&lt;/p&gt;
+
+&lt;p&gt;1. &lt;strong&gt;产品重心&lt;/strong&gt;： 现实中可能存在一些你必须保持平台上界面一致性的原因，特别是对于那些仍在努力在客户心中建立统一形象的小品牌。然而，用户一般更加习惯那些针对特定设备的界面设计而不是品牌形象。Jakob Nielsen经常强调，“用户把大部分时间都花在其他网站上”。这里我们讨论的也不仅仅是网站，在智能手机（这里用来代替站点和应用）上也是同样如此；&lt;/p&gt;
+
+&lt;p&gt;2. &lt;strong&gt;熟悉程度&lt;/strong&gt;： 你的大部分用户每天花费很长时间在你的服务上吗？他们已经使用服务很长时间了吗？还是绝大部分用户都很少使用它们？现在假设你提供了某种商业服务，并且你知道你的用户会花很长时间在它上面。在这种情况下，跨应用的熟悉度要优于设备约定的界面习惯。因为用户已经花了很长时间来适应你的独特的UI。相反，如果用户没有花费很长时间在你的服务上面，并且没有与你的设计和特性建立较高的认可度和情感，针对设备的特定UI约定通常可用性会更好。&lt;/p&gt;
+
+&lt;p&gt;3. &lt;strong&gt;功能&lt;/strong&gt;：这里有两个方面：a)你的服务只是使用一个简单的功能区解决单一问题，还是说会更加复杂？b)在各种不同的设备上功能和特性是否有差异？如果你提供的特性在不同的平台上差异很大，那么请遵循设备约定的界面风格。因为跨平台的一致性在这里对于易用性帮助不大（使用同样的标识和通用的设计在特性差异很大的情况下对用户起不了很大帮助，实际上，它们甚至有可能对用户造成损害，因为用户可能会在实际没有缺陷的情况下认为这是缺陷）。另一方面，如果你在解决一个单一简单的问题，可以选择放弃针对设备的约定风格。因为用户可以很快的习惯你的界面。相对针对于特定设备的约定风格，你可以更容易的去解决一些针对你的特性的界面设计问题。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;简短说来&lt;/strong&gt;：如果出于简化的目的，根据经验在合适的地方使用针对特定设备约定的界面风格是一种不错的选择。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;维持易用性研究和独特创造理念之间的平衡&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;如何在实行用户研究，用户反馈和易用性测试的过程中，与个人经历，习惯差异和尝试建立一种独特而具有创造性的体验之间取得平衡？简单来讲，用户可以在多大程度上对我的设计经过产生影响？归结起来，这一切完全取决于用户体验。&lt;/blockquote&gt;
+
+
+&lt;p&gt;用户体验的核心是你的产品，服务，应用或者网站所传达的概念。而这些使你与众不同的概念来源于竞争，来源于你如何为用户创造真正的价值。因此，你的产品概念需要更加的具有创造性，原创性越强越好。然后，在现实当中进行实践的时候，更多的去研究用户调查结果，学习UI设计约定，在概念允许的范围内展开尽可能多的易用性测试。&lt;/p&gt;
+
+&lt;p&gt;服务的完整度和易用性完全取决于易用性研究与测试，从竞争的角度来讲这些都是非常重要的特征，但是却不是用户选择一项服务的首要原因，而是能够真正的去解决一个问题或者满足某一项需求。因此，在为用户提供服务时，首先应该考虑如何去实践那些绝妙的新理念，之后才将重心转移到用户研究上去。&lt;/p&gt;
+
+&lt;p&gt;易用性测试工具可以用来完成测试并验证你的设计，帮助你根据用户行为和参与度来持续迭代设计。流程优化也应该存在于产品的整个生命周期内。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;原创译文：&lt;/strong&gt;&lt;a title=&quot;Read 'Adaptive Vs. Responsive Layouts And Optimal Form Field Labels'&quot; href=&quot;http://uxdesign.smashingmagazine.com/2012/11/08/ux-design-qa-with-christian-holst/&quot; rel=&quot;bookmark&quot;&gt;Adaptive Vs. Responsive Layouts And Optimal Form Field Labels&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>使用NODE.JS建立实时地理位置服务应用</title>
+   <link href="http://xvfeng.me/posts/real-time-geolocation-service-with-node-js"/>
+   <updated>2012-11-08T23:54:00+08:00</updated>
+   <id>http://xvfeng.me/posts/real-time-geolocation-service-with-node-js</id>
+   <content type="html">&lt;p&gt;原创译文，原文链接：&lt;a href=&quot;http://tympanus.net/codrops/2012/10/11/real-time-geolocation-service-with-node-js/&quot;&gt;REAL-TIME GEOLOCATION SERVICE WITH NODE.JS&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;伙计们，你们好！今天的教程我们将会制作一个简单的实时应用，它可以直接在地图上决定和显示当前连接用户的地理位置。这里我们将会使用Node.js和HTML5地理位置API来实现这个功能。你或许知道&lt;a href=&quot;http://nodejs.org/&quot; target=&quot;_blank&quot;&gt;node.js&lt;/a&gt;是一个异步的web服务器，它基于Google的V8 JavaScript引擎，为后台实时应用提供了完美的解决方案。我们的应用可以借助&lt;a href=&quot;http://socket.io/&quot; target=&quot;_blank&quot;&gt;socket.io&lt;/a&gt;（使用Web Sockets技术）让用户能够在地图上看到其他人的活动。示例可以在所有支持&lt;a href=&quot;http://caniuse.com/#search=geolocation&quot; target=&quot;_blank&quot;&gt;HTML5 地理位置API&lt;/a&gt;的浏览器里运行。&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/11/browser.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1792&quot; title=&quot;browser support&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/11/browser.jpg&quot; alt=&quot;&quot; width=&quot;566&quot; height=&quot;104&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; 安装NODE&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;首先你需要在电脑上安装node.js. 你可以从官方站点的下载页面获取针对各个平台的预编译Node.js二进制文件:&lt;a href=&quot;http://nodejs.org/download&quot; target=&quot;_blank&quot;&gt; http://nodejs.org/download&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;安装完成后你就可以连接到npm（node package manager），借助它你可以安装教程里所有的模块。这里我们将会使用到&lt;a href=&quot;http://socket.io/&quot; target=&quot;_blank&quot;&gt;socket.io&lt;/a&gt;和&lt;a href=&quot;https://github.com/cloudhead/node-static&quot; target=&quot;_blank&quot;&gt;node-static&lt;/a&gt;模块，用于很轻松的存放我们的客户端文件。进入你的程序目录，然后运行终端或者命令行：&lt;/p&gt;
+
+&lt;pre class=&quot;brush: javascript; gutter: true&quot;&gt;npm install socket.io node-static&lt;/pre&gt;
+
+
+&lt;p&gt;提示：我建议你安装一个nodemon的工具，可以让你在每次改动之后不用去重启服务器就可以看到文件的变化：&lt;/p&gt;
+
+&lt;pre class=&quot;brush: javascript; gutter: true&quot;&gt;npm install nodemon -g&lt;/pre&gt;
+
+
+&lt;p&gt;‘-g’意为全局安装，可以从任意node目录获取&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; HTML部分&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt; 首先在公共目录建立index.html文件&lt;/p&gt;
+
+&lt;pre lang=&quot;html&quot;&gt;
+&lt;!doctype html&gt;
+&lt;html&gt;
+
+    &lt;head&gt;
+        &lt;meta charset=&quot;utf-8&quot;&gt;
+        &lt;meta name=&quot;author&quot; content=&quot;Dmitri Voronianski&quot;&gt;
+        &lt;title&gt;Real-Time Geolocation with Web Sockets&lt;/title&gt;
+        &lt;link href='http://fonts.googleapis.com/css?family=Lato:300,400' rel='stylesheet' type='text/css'&gt;
+        &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/styles.css&quot;&gt;
+        &lt;link rel=&quot;stylesheet&quot; href=&quot;http://cdn.leafletjs.com/leaflet-0.4/leaflet.css&quot; /&gt;
+
+        &lt;!--[if lt IE 9]&gt;
+            &lt;script src=&quot;//html5shim.googlecode.com/svn/trunk/html5.js&quot;&gt;&lt;/script&gt;
+        &lt;![endif]--&gt;
+    &lt;/head&gt;
+
+    &lt;body&gt;
+        &lt;div class=&quot;wrapper&quot;&gt;
+          &lt;header&gt;
+            &lt;h1&gt;Real-Time Geolocation Service with Node.js&lt;/h1&gt;
+            &lt;div class=&quot;description&quot;&gt;Using HTML5 Geolocation API and Web Sockets to show connected locations.&lt;/div&gt;
+          &lt;/header&gt;
+
+          &lt;div class=&quot;app&quot;&gt;
+            &lt;div class=&quot;loading&quot;&gt;&lt;/div&gt;
+            &lt;div id=&quot;infobox&quot; class=&quot;infobox&quot;&gt;&lt;/div&gt;
+            &lt;div id=&quot;map&quot;&gt;To get this app to work you need to share your geolocation.&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js&quot;&gt;&lt;/script&gt;
+        &lt;script src=&quot;./js/lib/leaflet.js&quot;&gt;&lt;/script&gt;
+        &lt;script src=&quot;/socket.io/socket.io.js&quot;&gt;&lt;/script&gt;
+        &lt;script src=&quot;./js/application.js&quot;&gt;&lt;/script&gt;
+    &lt;/body&gt;
+
+&lt;/html&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;看起来确实很简单对么？为了能够在页面加载地图，这里我们将会使用到一个非常优秀的开源JavaScript库-&lt;a href=&quot;http://leaflet.cloudmade.com/&quot; target=&quot;_blank&quot;&gt;Leaflet.js&lt;/a&gt;。它完全免费并且可以高度自定义。它的API文档在网站上就可以找到。style.css在’./public/css’文件夹下面。它包含了一些简单的样式。leaflet.css也在相同的目录下，用于样式化地图。 服务器端 现在开始应用的后端部分。来看看”server.js”:&lt;/p&gt;
+
+&lt;pre lang=&quot;javascript&quot;&gt;
+// including libraries
+var http = require('http');
+var static = require('node-static');
+var app = http.createServer(handler);
+var io = require('socket.io').listen(app);
+ 
+// define port
+var port = 8080;
+ 
+// make html, js &amp; css files accessible
+var files = new static.Server('./public');
+ 
+// serve files on request
+function handler(request, response) {
+    request.addListener('end', function() {
+        files.serve(request, response);
+    });
+}
+ 
+// listen for incoming connections from client
+io.sockets.on('connection', function (socket) {
+ 
+  // start listening for coords
+  socket.on('send:coords', function (data) {
+ 
+    // broadcast your coordinates to everyone except you
+    socket.broadcast.emit('load:coords', data);
+  });
+});
+ 
+// starts app on specified port
+app.listen(port);
+console.log('Your server goes on localhost:' + port);
+&lt;/pre&gt;
+
+
+&lt;p&gt;代码一点儿也不复杂。它所做的就是存放文件并从客户端监听数据。现在我们可以从终端或者命令行来启动我们的应用看看：&lt;/p&gt;
+
+&lt;pre class=&quot;brush: javascript; gutter: false&quot;&gt;node server.js&lt;/pre&gt;
+
+
+&lt;p&gt;或者，如果你按照我的方法安装了nodemon，你可以这样写：&lt;/p&gt;
+
+&lt;pre class=&quot;brush: javascript; gutter: false&quot;&gt;nodemon server.js&lt;/pre&gt;
+
+
+&lt;p&gt;现在在你的浏览器访问localhost:8080(你可以把端口号设为你想要的任意端口)。我们还没有准备好我们主要的js函数，因此所有的文件现在都为静态。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; 客户端文件&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;现在我们终于可以打开”./public/js/application.js”文件并开始编写几段函数（这里主要使用jQuery）:&lt;/p&gt;
+
+&lt;pre lang=&quot;javascript&quot;&gt;
+$(function() {
+    // generate unique user id
+    var userId = Math.random().toString(16).substring(2,15);
+    var socket = io.connect(&quot;/&quot;);
+    var map;
+ 
+    var info = $(&quot;#infobox&quot;);
+    var doc = $(document);
+ 
+    // custom marker's icon styles
+    var tinyIcon = L.Icon.extend({
+        options: {
+            shadowUrl: &quot;../assets/marker-shadow.png&quot;,
+            iconSize: [25, 39],
+            iconAnchor:   [12, 36],
+            shadowSize: [41, 41],
+            shadowAnchor: [12, 38],
+            popupAnchor: [0, -30]
+        }
+    });
+    var redIcon = new tinyIcon({ iconUrl: &quot;../assets/marker-red.png&quot; });
+    var yellowIcon = new tinyIcon({ iconUrl: &quot;../assets/marker-yellow.png&quot; });
+ 
+    var sentData = {}
+ 
+    var connects = {};
+    var markers = {};
+    var active = false;
+ 
+    socket.on(&quot;load:coords&quot;, function(data) {
+        // remember users id to show marker only once
+        if (!(data.id in connects)) {
+            setMarker(data);
+        }
+ 
+        connects[data.id] = data;
+        connects[data.id].updated = $.now(); // shorthand for (new Date).getTime()
+    });
+ 
+    // check whether browser supports geolocation api
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(positionSuccess, positionError, { enableHighAccuracy: true });
+    } else {
+        $(&quot;.map&quot;).text(&quot;Your browser is out of fashion, there\'s no geolocation!&quot;);
+    }
+ 
+    function positionSuccess(position) {
+        var lat = position.coords.latitude;
+        var lng = position.coords.longitude;
+        var acr = position.coords.accuracy;
+ 
+        // mark user's position
+        var userMarker = L.marker([lat, lng], {
+            icon: redIcon
+        });
+ 
+        // load leaflet map
+        map = L.map(&quot;map&quot;);
+ 
+        // leaflet API key tiler
+        L.tileLayer(&quot;http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png&quot;, { maxZoom: 18, detectRetina: true }).addTo(map);
+         
+        // set map bounds
+        map.fitWorld();
+        userMarker.addTo(map);
+        userMarker.bindPopup(&quot;&lt;p&gt;You are there! Your ID is &quot; + userId + &quot;&lt;/p&gt;&quot;).openPopup();
+ 
+        // send coords on when user is active
+        doc.on(&quot;mousemove&quot;, function() {
+            active = true; 
+ 
+            sentData = {
+                id: userId,
+                active: active,
+                coords: [{
+                    lat: lat,
+                    lng: lng,
+                    acr: acr
+                }]
+            }
+            socket.emit(&quot;send:coords&quot;, sentData);
+        });
+    }
+ 
+    doc.bind(&quot;mouseup mouseleave&quot;, function() {
+        active = false;
+    });
+ 
+    // showing markers for connections
+    function setMarker(data) {
+        for (i = 0; i &lt; data.coords.length; i++) {
+            var marker = L.marker([data.coords[i].lat, data.coords[i].lng], { icon: yellowIcon }).addTo(map);
+            marker.bindPopup(&quot;&lt;p&gt;One more external user is here!&lt;/p&gt;&quot;);
+            markers[data.id] = marker;
+        }
+    }
+ 
+    // handle geolocation api errors
+    function positionError(error) {
+        var errors = {
+            1: &quot;Authorization fails&quot;, // permission denied
+            2: &quot;Can\'t detect your location&quot;, //position unavailable
+            3: &quot;Connection timeout&quot; // timeout
+        };
+        showError(&quot;Error:&quot; + errors[error.code]);
+    }
+ 
+    function showError(msg) {
+        info.addClass(&quot;error&quot;).text(msg);
+    }
+ 
+    // delete inactive users every 15 sec
+    setInterval(function() {
+        for (ident in connects){
+            if ($.now() - connects[ident].updated &gt; 15000) {
+                delete connects[ident];
+                map.removeLayer(markers[ident]);
+            }
+        }
+    }, 15000);
+});
+&lt;/pre&gt;
+
+
+&lt;p&gt;每次鼠标移动，我们使用socket.emit向node服务器发送信息是时奇迹就发生了。这意为这用户正活跃在页面上。socket.on也同时帮助我们从服务器端接收数据，并在地图上初始化标记。这里我们需要的主要是从浏览器里获取的标记的坐标位置。如果用户离开页面超过15秒，我们将会从地图上移除他的标记。如果用户的浏览器不支持地理位置API,我们将会弹出浏览器版本过低的信息。你可以从以下链接获取更多关于HTML5地理位置API的信息： &lt;a href=&quot;http://diveintohtml5.info/geolocation.html&quot; target=&quot;_blank&quot;&gt;Geolocation - Dive Into HTML5&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;演示代码&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;你可以从我的&lt;a href=&quot;https://github.com/voronianski/realtime-geolocation-demo&quot; target=&quot;_blank&quot;&gt;github仓库&lt;/a&gt;下载源码并在本地进行测试。如果你有任何问题，请随时在评论下面或者通过e-mail与我取得联系。谢谢！ 注意，演示有时候可能会因为服务器超载而不能正常加载。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://tympanus.net/Tutorials/RealtimeGeolocationNode/&quot; target=&quot;_blank&quot;&gt;查看演示&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/voronianski/realtime-geolocation-demo&quot; target=&quot;_blank&quot;&gt;下载源码&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;原创译文，欢迎转载，还请注明出处！&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>我为什么不选择校园招聘</title>
+   <link href="http://xvfeng.me/posts/the-reason-why-not-chose-campus-recrument"/>
+   <updated>2012-10-18T13:21:00+08:00</updated>
+   <id>http://xvfeng.me/posts/the-reason-why-not-chose-campus-recrument</id>
+   <content type="html">&lt;p&gt;直接回答题目问题的话，答案就是，技术不过关，这个绝对没有什么理由好找。&lt;/p&gt;
+
+
+&lt;p&gt;写这篇文章的想法来源于前几天帮电商专业的一名好友去参加阿里巴巴集团校园招聘的前端面试。因为好友和她的朋友报了名参加，通过了第一轮简历的筛选，被通知参加正式的笔试。但是因为都不是信息技术相关行业的学生，所以对于所选职位可能欠缺相关的技能，有一位直接就不想去了。但是另一位（也就是找我的那一位）是阿里巴巴的忠实粉丝，一直都抱有进入阿里的决心（这个还是相当佩服的，有明确的方向就该鼓励），所以她不管是否成功，铁了心的要去笔试，然后我就被拉了过去。。拉我过去的原因比较简单，我就是个搞前端（菜鸟）的。。&lt;!--more--&gt;&lt;/p&gt;
+
+
+&lt;p&gt;其实一直都没有去参加什么校园招聘的想法，但是好友要帮忙，加上自己也还是想去看看校招到底在搞些什么，所以最终还是去了。也就对校招有了个初步的了解。&lt;/p&gt;
+
+
+&lt;p&gt;笔试地点在华科最大的自习室之一的西十二教学楼。虽说咱离华科相当近，但四年了还是第一次真正进入他们的教学楼。进去之后找到了考试的教室，一开始不让进，因为要查看相关的证件。（忘了讲我是替一个女生代考。。。）但后来跟主考的人在门口通过一定的“外交手段”，神奇的让我进去了。我拿到试卷的时候考试已经开始了，考场的气氛跟平时参加考试无异，大家都埋头认真的在考试。我就比较轻松了，过来打打酱油。&lt;/p&gt;
+
+
+&lt;p&gt;简单做了下阿里的前端笔试题，一看，还真简单。做起来，还真不会。。虽说自己在实习单位做了一段时间了，但是大部分时间用的都是jQuery的库，题目大部分考原生js，不知道怎么做了。然后就是一些简单js类的实现，一些基本的前端组件和HTML+CSS的基础知识，加上最后还有个前端性能优化的题（这题还做的不错）。&lt;/p&gt;
+
+
+&lt;p&gt;交卷的时候也看了下周围的人，有本科的也有研究生在读的。或多或少都会有一两个题没做。自己交的时候也有底，做成自己那样肯定没法过。&lt;/p&gt;
+
+
+&lt;p&gt;但这酱油还是没白打的，知道了自己在基础知识上的不足，得好好补补。&lt;/p&gt;
+
+
+&lt;p&gt;如果不考研，铁了心要毕业就找工作的人肯定知道，这几天各种校园招聘如火如荼的在进行着。可能自己所在的学校比较烂，很多同学（包括自己在内）都感觉动静不大。但是如果有在其他重点高校同级同学的人，肯定或多或少会知道这么个事，很多知名企业现在这个时候正在各个高校进行校园宣讲会，带来了各自公司12年的秋季招聘会，什么华为，什么中兴，什么IBM ，什么百度。。。一大堆牛逼企业。我们学校还真一个没有。。。&lt;/p&gt;
+
+
+&lt;p&gt;那么校园招聘是什么，和社会招聘又有什么区别呢？“&lt;a href=&quot;http://www.zhihu.com/question/19895061&quot; shape=&quot;rect&quot; target=&quot;_blank&quot;&gt;知乎&lt;/a&gt;”了一下，发现了一个不错的答案，这里就直接贴过来了。&lt;/p&gt;
+
+
+&lt;p&gt;
+&lt;ul&gt;
+    &lt;li&gt;从目的上看，校园招聘一般会有很多的高校宣讲会，所以在招聘人才的同时宣传公司也是很大的一个目的（常常看到有人说某某公司今天在校园招聘中基本没招人还组织了好多宣讲会，意义就在于宣传公司）。&lt;/li&gt;
+    &lt;li&gt;从流程上看，校园招聘有大多有统一的流程，从网申到笔试到面试都会有时间节点，错过了基本就没机会。而社会招聘则是有什么职位需求就挂在网上等待合适的人出现，有可能好久都没有合适的人所以过了挺久去应聘还是有可能通过的。&lt;/li&gt;
+    &lt;li&gt;从要求上看，校园招聘面向的都是在校学生，对于职位相关的经验和具体业务能力要求相对较低，主要看其在该职位方面的感觉，学习能力，个人的性格等等因素。而社会招聘基本在职位要求中就有几年的相关工作经验的要求，更看重该职位的经验，具体业务能力和之前工作表现。&lt;/li&gt;
+    &lt;li&gt;从进入以后的工作看，校园招聘进入公司后以学为主，一般会有相应的人带着，前期公司也是以培养为主要目的，不会立即要求承担起一定的职责。而社会招聘希望的都是有相关工作经验的，招进来希望能不用教立马使用。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/p&gt;
+
+
+&lt;p&gt;搞清楚了什么是校园招聘，接下来进入正题，我为啥不去参加？&lt;/p&gt;
+
+
+&lt;p&gt;从个人的角度来讲，参加校招，自己的一些优势就完全丧失了。根据校招的基本流程来走，首先是提交简历，这个还好，被干掉的机率较低。但是到了笔试，就是看硬实力的时候了。自己并非科班出身，这个时候被拉出去和那些专业的班子一起参加考试，以现在的实力，还真过不了这一关。面试是在笔试之后，所以这个过程很有可能就没有机会能够参与了。&lt;/p&gt;
+
+
+&lt;p&gt;我不参加校园招聘，但不代表我不想找合适的工作。&lt;/p&gt;
+
+
+&lt;p&gt;这里我来讲讲自己的一些小渠道。首先就是微博了（好吧，Weibo again...）。大概一个月前，微博上关注的一个大牛分享了他们公司的一些招聘信息，其实是不招实习生的，但我还是私信过去了，他给了我他所在公司HR的联系方式，然后我根据联系方式将简历投了过去。&lt;/p&gt;
+
+
+&lt;p&gt;2天之后我就收到了他们成都地区HR的电话。然后对我进行电话面试，对方告知我会在一个星期内对我进行几次电话面试，目的是对我的综合素质做进一步的了解，在这个过程中也是没有任何技术方面的考察的。谈话的内容也主要是对我之前的实习经历，学习过程，兴趣爱好方面的了解。他们对我抱有兴趣有一个原因就在于我是学英语的，这个也在之前的一些面试过程中被多次当作亮点提出来。在他们看来，英语专业的人能去计算机领域发展，并且完全靠自我学习，还是能说明一定的问题的，学习能力有保障，另外一个原因就是兴趣了。做好一件事兴趣很重要，尤其是程序开发类的工作，兴趣是保证高质量代码的基础。&lt;/p&gt;
+
+
+&lt;p&gt;个人觉得他们对我的第一轮面试还是比较满意的，而自己也特别喜欢这样的面试。一个公司招聘人，如果单纯的只看技术，而忽略员工的综合素质，对于公司的发展是不利的。这样招聘的很有可能是只会做事，甚至是只会考试的人，而不会真正的融入到公司中去，也不会有什么更大的作为了。因为面试过程未设计到太多的技术问题，加上HR又是一位年轻的OL，所以整个还是比较轻松的。第二轮面试就要考技术了。HR给我发了一份作业，我特别喜欢他们的名字，&quot;HOMEWORK&quot;，意为家庭作业，看起来特别亲切，不会像其他死板的公司一样丢个试卷给你。&lt;/p&gt;
+
+
+&lt;p&gt;他们会留给我3-4天的时间来单独完成这份homework，然后他们会把我的作业提交给相关的技术人员审查，最后给我答复。&lt;/p&gt;
+
+
+&lt;p&gt;现在的我人没在成都，结果就很明显了。但这次面试的过程真的是特别的享受。有别于其他一些公司的地方在于，我人在武汉，公司地点在成都，他们没有要我直接过去面试，而是先进行电话面试，网络笔试。我觉得这是对于求职者一种负责任的态度，因为求职者很可能因为不能满足对方的需求而白跑一趟。另外，能够进行网络笔试，也是对求职者的一种信任，我相信这是考察求职者诚信的另外一种方式。补充说明一下，他们发给我的homework，我在google上找到了答案。。。但最后还是自己做的，虽说没过，但还是觉得自己这么做是相当对的。&lt;/p&gt;
+
+
+&lt;p&gt;回头查了下公司的相关信息，是一家总部在美国的外企，专门做IT咨询的，服务对象只面向全球1000强企业，以其面试过程之难而闻名。怎么个难法？面试过程平均用时1个月，其间会有3-4轮面试，包括电话面试，homework网络笔试，现场结对编程笔试，综合能力考察。Boston Times对其还做过专门报导，面试难度高于Google和Facebook.&lt;/p&gt;
+
+
+&lt;p&gt;好吧，讲这个是安慰自己不是不够牛逼，是对方太牛逼。但这次面试过程也坚定了一个自己加入外企的决心，那种环境才是自己想要的，好好奋斗吧少年！&lt;/p&gt;
+
+
+&lt;p&gt;除了微博这个平台，其他的应聘平台相对就比较有针对性了。可能只针对某个领域，做互联网的原因，我们这个圈子在网络上还是比较活跃的。偶然在V2EX(way to explore)上发现了几则招聘启事，而且都是招聘前端工程师的。没有过多思考就投了过去。做互联网的人之间还是有共性的。招聘者本身就跟自己有着相同的兴趣爱好，摄影，linux,vim,twitter等等，真的是因为喜欢才在一起。大多数也都是年轻人，叛逆的心理还是有的。。。于是每个招聘的加分选项里有就多了“非党员”三个字，我就不幸中枪了。。但是这不影响你的面试，这个可能说只是他们表达自己思想的一种方式，不存在任何的针对性，党员与否没有任何影响。还有可以看到各种招聘的标语，“寻找不折腾会死星人”什么什么的。。。年轻人该有的热情可以从中找到，当然对技术的热情也是互联网企业的支柱。这正是自己之前实习单位所没有的。一直以来，自己走的什么路，都是按照自己喜欢的来的。不会勉强自己，坚持做自己喜欢做的事。因为明天可能就是我的最后一天了，我有什么理由不去我喜欢做的事！&lt;/p&gt;
+
+
+&lt;p&gt;我之参加的招聘和校园招聘的区别，想必也很明显了。&lt;/p&gt;
+
+
+&lt;p&gt;我觉得企业的校园招聘跟天朝的高考制度无异，一堆人报名，考试，然后根据考试结果招人。个性化在哪里？？我们经常会抱怨高考，缺乏人性化的措施，忽视了学生的综合素质。每个人都有各自的特长，成绩不好完全不代表没有能力和潜力，很有可能是不会考试，不喜欢考试。而四年后似乎又遇到了同样的局面，发挥不好就很有可能被一棍子打死。&lt;/p&gt;
+
+
+&lt;p&gt;四年前是没得选，但现在，摆在面前的校招是我不愿意去接受的，所以我也不会去选择用他来实现所谓的人生梦想。&lt;/p&gt;
+
+
+&lt;p&gt;前几天在网上看了一个段子，内容为：郭靖，给人的印象就是笨头笨脑的，但是得益于一大堆奇人的培养，最终成为一代大侠；王重阳，一代宗师，教了七个徒弟，但七个都没有太大的作为。中国大学的扩招，结果也会如此。&lt;/p&gt;
+
+
+&lt;p&gt;再看一段新闻“盛和摩根斯坦利校园招聘遭到包括哈佛和普林斯顿在内的名校学生抵制。学生们在会场高喊高盛的作为违背学校座右铭，并陈述高盛的种种劣迹。示威学生高喊高盛以华尔街金钱文化向学生洗脑，呼吁参加说明会的学生反思，大学教育是为了国家和社会，在华尔街工作是浪费才能。”当学生看重的不只是钱，而是责任，而是国家，这不是教育的最终目的吗？&lt;/p&gt;
+
+
+&lt;p&gt;大道理谈不好，只能分享分享自己的一些经历，吐槽吐槽。当然，不否认校招确实可以招到人才，只是自己真的实力不够而已。也不想多谈了，。到这里就完毕。&lt;/p&gt;
+
+
+&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;以上就是我不选择校园招聘的原因了。“元芳”们，你们怎么看？&lt;/p&gt;
+
+
+&lt;p&gt;&lt;/p&gt;
+
+
+&lt;p&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
+   <title>你的网站真的需要风格样式指南吗？</title>
+   <link href="http://xvfeng.me/posts/do-i-really-need-a-style-guide"/>
+   <updated>2012-09-07T10:33:00+08:00</updated>
+   <id>http://xvfeng.me/posts/do-i-really-need-a-style-guide</id>
+   <content type="html">&lt;p&gt;究竟什么是风格指南，而我们又应该在什么时候使用它呢？我们总结了风格指南的主要特点，它应该包含什么内容，已经你应该如何判断是否应该投入时间为你的网站或品牌建立风格指南。&lt;/p&gt;
+
+&lt;p&gt;坦白来讲，不是所有的网站都需要一个风格指南。例如你的表哥的渔具箱Tumblr（国外著名轻博客服务站点）或者邻居家的“猫草皮”电商网站，这些真的不需要一个风格指南。好吧，他卖了多少猫草皮另当别论，但是表哥的渔具工具箱肯定是用不上的。不谈这样类型的网站了，网站风格指南适用于那些需要保持专业的外观设计，品牌一致性的站点。建立风格指南是非常消耗时间的，因此在你开始投入时间建立它之前务必确定你是否真的需要它。&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/1.jpg&quot;&gt;&lt;img title=&quot;do-i-really-need-a-style-guide/&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/1.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;315&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3&gt;究竟什么是网站风格指南？&lt;/h3&gt;
+
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/2.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1749&quot; title=&quot;yahoo&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/2.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;在我们决定是否需要风格指南之前，让我先来了解一下它到底是怎样的。最简单的回答就是他仅仅是一份HTML或者印刷文件，它描述并展示了你的网站的外观以及使用方法。它真的仅仅只是网站的一个指导手册，规定了网站需要增加功能或者更新是应该遵循的样式和标准。&lt;/p&gt;
+
+&lt;p&gt;l 应该使用什么颜色？&lt;/p&gt;
+
+&lt;p&gt;l H1应该多大字体？&lt;/p&gt;
+
+&lt;p&gt;l 内容左对齐还是居中对齐？&lt;/p&gt;
+
+&lt;p&gt;我们将会探讨我们在风格指南里所需要的以及我们自己所需要的内容。但是现在，那就是一个简单的答案而已。&lt;/p&gt;
+
+&lt;h3&gt;我们为什么以及在什么时候需要它？&lt;/h3&gt;
+
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/3.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1750&quot; title=&quot;netflix&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/3.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;好问题。世界上根本没有所谓简单的问题，这需要根据情况而定，这里我们需要根据网站内容以及用户来确定，这些包括了后台用户，设计师，开发者已经内容发布者。一个最值得你花时间去思考是否应该以及在什么时候需要它的因素就是时间。很多设计师会告诉你风格指南是怎样怎样可以节省你很多很多开发的时间。但是在很多时候，你可能浪费了很多时间用在建立一个你在未来根本就不会去参考的手册，或者更糟的是，你的用户和内容发布者都不会去参考。&lt;/p&gt;
+
+&lt;p&gt;时间是我们在决定是否需要它的一个重要因素。如果你正在开发一个站点或者应用，你可不想花大量的时间在一个可能完全看不到希望的地方。试着把风格指南当作一个长期的投资，如果你还没有准备好立马投资，请不要轻易尝试。但是如果确实出于长远考虑，那么这个时间是花的物有所值的。它可以使你后期维护起来更加容易。&lt;/p&gt;
+
+&lt;p&gt;如果你不清楚你的“故事”将会是一部拥有版权的宏篇大作还是周五晚上消遣的小短篇，下面是一些你可以用作参考的问题。如果你的答案一直都是&amp;ldquo;yes&amp;rdquo;，那么你很有可能正在准备建立一份这样的文档。&lt;/p&gt;
+
+&lt;p&gt;l 我想节省我的脑细胞？&lt;/p&gt;
+
+&lt;p&gt;l 我喜欢好的可用性及标准？&lt;/p&gt;
+
+&lt;p&gt;l 我喜欢保持外观和内容的一致性？&lt;/p&gt;
+
+&lt;p&gt;l 我的网站是否代表着某个品牌？&lt;/p&gt;
+
+&lt;p&gt;l 其他人可能会使用我的商标或者品牌？&lt;/p&gt;
+
+&lt;p&gt;l 我将会定期生成和更新内容？&lt;/p&gt;
+
+&lt;p&gt;l 有除了我之外的其他内容贡献者？&lt;/p&gt;
+
+&lt;p&gt;l 我是自由职业者并且希望为我的客户提供易于管理的站点？&lt;/p&gt;
+
+&lt;p&gt;l 我有应用程序接口？&lt;/p&gt;
+
+&lt;p&gt;l 我正在建立一个公司？&lt;/p&gt;
+
+&lt;p&gt;l 我为一个大公司工作？&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h3&gt;我应该如何建立一份风格指南？&lt;/h3&gt;
+
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/4.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1751&quot; title=&quot;wordpress&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/4.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;如果你已经十分确定你需要风格指南而且你现在已经准备好了为自己建立一份。你的风格指南的建立依据可能会是：你的站点的类型已经你的目标用户究竟是谁。有时候你可能只是为了便于自己查看，则没有必要写的过于详细和漂亮。在其他情况下，例如将会有上千人将会参考使用你的手册，那么你可能需要使它更加详细并提供更多的细节。&lt;/p&gt;
+
+&lt;p&gt;我有2点需要遵循：“我需要什么”以及“我想要什么”。“我需要什么”指的是你应该为用户提供哪些信息。“我想要什么”指的是你个人想在里面加入什么。同样的，不要把这些当作模板，这些只是你在建立的时候一个需要考虑的元素，你不需要满足所有的需要。并且在大多数情况下，你需要的是提供那些你的站点真正需要的细节。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h4&gt;&lt;em&gt;“你需要的”&lt;/em&gt;&lt;/h4&gt;
+
+
+&lt;p&gt;&lt;strong&gt;商标&lt;/strong&gt;。定义并给出你商标和颜色的示例。展示你logo使用的颜色，装扮，白色背景还是黑色背景的。为你的Logo上可能出现的颜色提供HEX和RBG的值以及色卡，并提供一些logo文件，例如.png .jpg甚至是.ai和.psd格式的文件。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;字体&lt;/strong&gt;。定义好每个标题，段落，注释，引用，标签，表单头部和其他格式化文档应该使用的字体及大小。并提供行高，字体间距等可能需要的细节。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;布局&lt;/strong&gt;。定义好HTML和其他元素在页面上的位置和结构以及相互的逻辑关系。定义好margin, padding, gutters和全局的网格模式，同样还有某些和其他内容不同的特定元素。如果有必要，提供布局示例去展示不同页面和布局模板之间的区别。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;链接和按钮&lt;/strong&gt;。定义好页面上可能出现的链接和按钮的颜色和样式。为内容颜色，侧边栏链接，提交按钮，表单按钮，信息按钮或者其他一些在按钮和链接提供示例和颜色代码。这将会使你开始考虑如何去简化一个看起来很复杂的设计。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;导航&lt;/strong&gt;。定义好主次导航的风格以及交互样式。定义好嵌套或者上下级导航使用时的行为，展示一些导航使用和建立的示例。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;视觉层次&lt;/strong&gt;。定义并展示页面头部，图片，标题，段落和其他元素之间的相互关系。提供一些你定义的必须实现的视觉层次关系的示例，必要时甚至可以提供为什么这么做对于网站的外观如此重要的详细说明。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/5.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1752&quot; title=&quot;W3C&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/5.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;图片和图标&lt;/strong&gt;。定义站点图片和图标的类型，尺寸，文件尺寸和样式。你的文章会有特色图片吗？你有必须使用的特定图标组吗？内容图片是居中还是浮动？提供图片和图标的示例。为用户提供相关的占位图片和合适的图标组。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;UI标准&lt;/strong&gt;。定义好UI元素在使用时的交互和外观类型。哪些地方改使用单选框或者多选按钮？多做点额外的工作，样式化一套完整的UI，提供生成UI元素的一些图片甚至是代码。一些比较好的完整的UI工具组有Twitter Bootstrapt和jQuery UI.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;表单及验证&lt;/strong&gt;。定义好表单的样式和表单元素的布局。定义输入框和标签的对齐方式。同样，定义好表单的流程，已经在哪应该使用什么类型的表单等。定义好表单验证的类型，确定错误信息的现实方式和颜色等。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h4&gt;&lt;em&gt;“你想要的”&lt;/em&gt;&lt;/h4&gt;
+
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;二元性&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;目标使命&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;代码实践&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;文件命名&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/6.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1753&quot; title=&quot;heineken&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/6.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;内容规范&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;评论标准&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Do&amp;rsquo;s和Don'ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;可下载打印&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;更加漂亮&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h3&gt;总结&lt;/h3&gt;
+
+
+&lt;p&gt;风格指南是你用户和你自己的有力工具。它可以在你回答内容被编辑和添加时的样式问题是节省很多时间。但是请注意你话在上面的时间和精力，少走弯路，尽量不要浪费在一份根本就没有人会使用的风格手册上面。如果你的风格指南做的比实际站点还漂亮，那你肯定花的时间太多了。&lt;/p&gt;
+
+&lt;p&gt;一些风格指南示例：&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/7.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1754&quot; title=&quot;Mac&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/7.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/8.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1755&quot; title=&quot;cisco&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/8.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/9.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1756&quot; title=&quot;Android&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/9.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/10.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1757&quot; title=&quot;mapquest&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/10.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/11.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1758&quot; title=&quot;rails&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/11.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/12.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1759&quot; title=&quot;mysql&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/12.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/13.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1760&quot; title=&quot;southafrica&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/13.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/14.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1761&quot; title=&quot;mozila&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/14.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/15.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1762&quot; title=&quot;skype&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/15.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/16.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1763&quot; title=&quot;energystar&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/16.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/17.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1764&quot; title=&quot;gatech&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/17.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/18.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1765&quot; title=&quot;intel&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/18.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/19.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1766&quot; title=&quot;google&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/19.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/20.jpg&quot;&gt;&lt;img class=&quot;aligncenter size-full wp-image-1767&quot; title=&quot;ebay&quot; src=&quot;http://www.coursegarden.com/wp-content/uploads/2012/09/20.jpg&quot; alt=&quot;&quot; width=&quot;580&quot; height=&quot;275&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;原文翻译，欢迎转载。还请注明转载地址，谢谢！&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;原文链接：&lt;a title=&quot;do-i-really-need-a-style-guide&quot; href=&quot;http://tympanus.net/codrops/2012/09/06/do-i-really-need-a-style-guide/&quot; target=&quot;_blank&quot;&gt;DO I REALLY NEED A STYLE GUIDE?&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>面向对象开发基础知识</title>
+   <link href="http://xvfeng.me/posts/oop-base"/>
+   <updated>2012-09-04T10:12:00+08:00</updated>
+   <id>http://xvfeng.me/posts/oop-base</id>
+   <content type="html">&lt;p&gt;面向对象编程（Object-Oriented Programming，OOP）是一个软件开发范式，它基于称为 “对象” 的数据结构的定义，由数据属性和函数组成。这些属性（成员变量）和函数（或方法）定义软件与那个对象可能进行的交互。OOP 的主要好处是，简化您的代码结构，有助于代码重用和维护。&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N10083&quot;&gt;&lt;/a&gt;“面向对象” 基础知识&lt;/h5&gt;
+
+
+&lt;p&gt;面向对象编程的基本前提是：在您的软件中创建一些对象，这些对象定义一系列应用于该对象的属性和一系列能够检索或修改该对象的属性的方法或函数。&lt;code&gt;car&lt;/code&gt; 可能是一个简单的对象示例。与一个 &lt;code&gt;car&lt;/code&gt; 关联的数据属性可能包括它的 &lt;code&gt;manufacturer&lt;/code&gt;、&lt;code&gt;model number&lt;/code&gt;、&lt;code&gt;registration number&lt;/code&gt;、&lt;code&gt;color&lt;/code&gt;、&lt;code&gt;cubic capacity&lt;/code&gt;，等等。一个 &lt;code&gt;car&lt;/code&gt; 对象提供的方法可能包括 &lt;code&gt;accelerate&lt;/code&gt;、&lt;code&gt;brake&lt;/code&gt;、&lt;code&gt;change gear&lt;/code&gt;、&lt;code&gt;turn&lt;/code&gt;、&lt;code&gt;stop&lt;/code&gt; 等等。在 OOP 中，理念是您定义对所有汽车都通用的基本属性和方法，每辆汽车都将采用那个定义的形式，尽管每辆汽车都采用不同的值。本文稍后将介绍，软件开发中有不同的面向对象途径。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N100C0&quot;&gt;&lt;/a&gt;常用 OOP 术语&lt;/h5&gt;
+
+
+&lt;p&gt;为最大限度地利用本文，您至少应该熟悉面向对象编程及其概念。下面简要描述讨论面向对象开发时使用的一些常用术语。需要说明的是，并非所有 OOP 类型都包含每个概念；例如，基于原型的对象语言（比如 JavaScript）中就没有 “类”。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N100C9&quot;&gt;&lt;/a&gt;类&lt;/h5&gt;
+
+
+&lt;p&gt;在基于类的面向对象开发中，一个类定义组成一个对象的不同属性和函数。类定义用于生成对象的模板，因此它们应该定义这些对象能够遵守的公共属性和动作。类通常由成员变量和方法构成。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N100D2&quot;&gt;&lt;/a&gt;成员变量&lt;/h5&gt;
+
+
+&lt;p&gt;对象的成员变量就是该对象的属性。在前面提到的汽车示例中，这些属性包括该汽车的 &lt;code&gt;manufacturer&lt;/code&gt; &lt;code&gt;model&lt;/code&gt;、&lt;code&gt;color&lt;/code&gt;、&lt;code&gt;cubic capacity&lt;/code&gt;，等等。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N100EB&quot;&gt;&lt;/a&gt;方法&lt;/h5&gt;
+
+
+&lt;p&gt;方法是对象能够执行的动作。例如，一辆汽车能够 &lt;code&gt;accelerate&lt;/code&gt;、&lt;code&gt;brake&lt;/code&gt;、&lt;code&gt;turn&lt;/code&gt;，等等。通常，方法将修改成员变量的值。例如，当一个 &lt;code&gt;car&lt;/code&gt; 对象使用 &lt;code&gt;accelerate&lt;/code&gt; 方法加速时，它的当前速度属性将增加。许多对象都有一个称为 &lt;em&gt;constructor&lt;/em&gt; 的方法，该方法在对象创建后立即被调用。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N1010B&quot;&gt;&lt;/a&gt;实例或对象&lt;/h5&gt;
+
+
+&lt;p&gt;实例或对象即实际对象本身，而不是用于定义对象的模板。例如，您可能有一个名为 &lt;code&gt;myCar&lt;/code&gt; 的对象，它拥有一个汽车模板的属性和方法。在一个对象的实例中，属性将实际拥有值。例如，&lt;code&gt;myCar&lt;/code&gt; 可能拥有一个值为 &lt;code&gt;silver&lt;/code&gt; 的 color 属性，一个值为 &lt;code&gt;2500&lt;/code&gt; 的 cubic capacity 属性。一个对象的属性的当前值称为该对象的状态，该状态可以在该对象的整个生命周期内变化。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N10124&quot;&gt;&lt;/a&gt;继承性&lt;/h5&gt;
+
+
+&lt;p&gt;在基于类的 OOP 中，继承性是这样一个过程：子类继承其父类的成员变量和方法。除了继承这些属性和动作之外，子类可以定义自己的成员变量和方法，并提供父类的属性的默认值。例如，您可能有一个 &lt;code&gt;FourByFour&lt;/code&gt; 类，它是 &lt;code&gt;Car&lt;/code&gt; 类的一个子类。这个子类可以将其父类的 drivetrain 属性的默认值设置为 &lt;code&gt;4WD&lt;/code&gt;（四轮驱动）。另外，它可以定义另一个名为 transfer case 的属性，该属性仅适用 4x4 汽车；并定义一个方法，该方法允许您更改其他普通车辆上没有的低速档（low range gear）。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N10139&quot;&gt;&lt;/a&gt;封装&lt;/h5&gt;
+
+
+&lt;p&gt;在基于类的 OOP 中，成员变量通常被定义为私有变量，以免被从类本身的范围外访问或修改。有一些称为 “修改器” 的特殊方法，它们允许您定义可以检索或修改类中的私有成员函数的值的方法。这些方法（通常称为 getters 和 setters）允许程序员使用隐藏的信息，使应用程序和其他类只能访问某些属性。这种技术通常称为 “封装”。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N10142&quot;&gt;&lt;/a&gt;抽象&lt;/h5&gt;
+
+
+&lt;p&gt;抽象是通过只定义那些在您对象的当前上下文中对该对象很重要的属性和方法来减小对象的复杂性的过程。例如，当您定义一个 &lt;code&gt;Car&lt;/code&gt;类时，可以通过定义一辆汽车拥有的、对其他类型的车辆（比如有蓬货车、卡车、摩托车等）也常见的所有属性，来将这个类进一步抽象为一个 &lt;code&gt;Vehicle&lt;/code&gt; 类。这样，&lt;code&gt;Car&lt;/code&gt; 类将从 &lt;code&gt;Vehicle&lt;/code&gt; 类继承这些属性，就像一个 &lt;code&gt;Motorcycle&lt;/code&gt; 类或 &lt;code&gt;Van&lt;/code&gt; 类那样。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N10163&quot;&gt;&lt;/a&gt;多态性&lt;/h5&gt;
+
+
+&lt;p&gt;在 OOP 上下文中，多态性意味着可以从它的超类继承方法，而不必提供所有方法的相同实现。例如，您有两个 &lt;code&gt;Car&lt;/code&gt; 类的两个子类，一个用于自动挡汽车（我们称其为 &lt;code&gt;ATCar&lt;/code&gt;），另一个用于手动挡汽车（我们称其为 &lt;code&gt;MTCar&lt;/code&gt;）。所有 &lt;code&gt;Car&lt;/code&gt; 对象都能加速，因此 &lt;code&gt;ATCar&lt;/code&gt; 和&lt;code&gt;MTCar&lt;/code&gt; 都将从它们的父类继承 &lt;code&gt;accelerate&lt;/code&gt; 方法。但是，在一个 &lt;code&gt;ATCar&lt;/code&gt; 中，当引擎达到某个 RPM 级别时，您的 accelerate 方法将自动调用 change gear 方法。结果，您在 &lt;code&gt;ATCar&lt;/code&gt; 子类中覆盖了 &lt;code&gt;accelerate&lt;/code&gt; 方法的父类定义，而在 &lt;code&gt;MTCar&lt;/code&gt; 中，该方法就是子类从 &lt;code&gt;Car&lt;/code&gt; 类继承而来的方法。&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N101A3&quot;&gt;&lt;/a&gt;面向对象的 JavaScript&lt;/h5&gt;
+
+
+&lt;p&gt;上一小节介绍的许多概念都是称为基于类的面向对象编程的特定 OOP 范式所专用的。但是，并非所有编程语言都遵守这个范式。另一种常见 OOP 类型是基于原型的面向对象编程，JavaScript 语言中就使用该范式。在本小节中，您将了解 JavaScript 的面向对象实现，一个用例，以及您可能会遇到的一些障碍，特别是当您来自一个基于类的 OOP 环境时。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N101AC&quot;&gt;&lt;/a&gt;JavaScript 并不只是一种基本脚本语言&lt;/h5&gt;
+
+
+&lt;p&gt;当 JavaScript 首次流行时，它主要用作一种在基本 web 页面上执行一些简单技巧的方法。大多数 JavaScript 用户都不是软件开发人员，他们是图形或 web 设计师，他们可能拥有丰富的 HTML 经验，但他们的编程语言知识很少，甚至没有。HTML 本身在支持生成动态效果方面的功能是非常有限的，而这正是 JavaScript 优势所在。然而，大多数设计师并不实际学习如何用 JavaScript 编程，而只是尽量找到它们需要的代码段，仅仅学习调试该代码段以满足自身需要的所需的知识，然后使用那段小代码。当设计师这样做过几次之后，他们就会误以为他们自己的 JavaScript 水平不错了。&lt;/p&gt;
+
+&lt;p&gt;在 web 早期，JavaScript 的功能很有限。但是，它现在已经成长为一个成熟的、功能齐全的编程语言，它不再只用于为网站编写一些简单技巧，而是用于驱动整个富互联网应用程序。事实上，作为一种语言，JavaScript 今天还在以各种方式应用。例如，CouchDB 面向文档数据库管理系统就使用 JavaScript 函数来查询数据库中的数据。&lt;/p&gt;
+
+&lt;p&gt;许多 Java 开发人员（以及使用其他更传统的编程语言的开发人员）可能会轻视 JavaScript，认为它是一种基本脚本语言。尽管 JavaScript 已经发展得非常强大，认为它只是用于在网站上执行一些小技巧的误解仍然存在。这是因为大多数使用 JavaScript 的 web 开发人员将使用 jQuery、Prototype 或 Dojo 这样的库来避免为它们编写 JavaScript 的工作。事实上，很多 web 开发人员可能被视为编写 jQuery 应用程序的专家，但对于 JavaScript 本身，他们实际上几乎没有什么专长。很多这样的开发人员没有意识到的是，JavaScript 实际上非常强大，且包含开箱即用的面向对象特性。在本小节中，您将了解这些特性。&lt;/p&gt;
+
+&lt;h5&gt;&lt;a name=&quot;N101BB&quot;&gt;&lt;/a&gt;基于原型的 OOP&lt;/h5&gt;
+
+
+&lt;p&gt;JavaScript 实现的面向对象编程类型不同于 Java™ 代码中使用的类型。尽管 Java 编程基于一个基于类的 OOP 模型，但 JavaScript 基于一个不怎么基于类的 OOP 模型，这个模型称为基于原型的对象方向。对象只在需要的时候才被声明，而不是定义一组用于创建对象的类模板。当一个对象需要从另一个对象继承特性时，它可以简单地克隆一个原型对象的特性。原型 OOP 的一个关键优势是，对象原型可以在运行时修改，这意味着对象结构的定义不是严格的。大多数基于类的 OOP 编程语言不允许类在运行时动态改变（但有几个例外，比如 Perl、Python 和 Ruby）。&lt;/p&gt;
+
+&lt;p&gt;原文转自：&lt;a title=&quot;IBM developerWorks&quot; href=&quot;http://www.ibm.com/developerworks/cn/web/wa-ground2/#resources&quot;&gt;IBM developerWorks&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>使用HTML5建立无与伦比的表单</title>
+   <link href="http://xvfeng.me/posts/html5forms"/>
+   <updated>2012-08-21T12:04:00+08:00</updated>
+   <id>http://xvfeng.me/posts/html5forms</id>
+   <content type="html">&lt;p&gt;写在前面：一直没有好好研究过HTML的表单元素，偶然在&lt;a title=&quot;html5rocks&quot; href=&quot;http://www.html5rocks.com/en/&quot;&gt;html5rocks&lt;/a&gt;发现了这篇好文章，应用HTML5来建立表单元素，虽然说目前浏览器兼容性不是很好，但很多地方还是具有很高的实用价值的，于是就随便翻译了一下，“信，达，雅”没有一项达标，主要供本人学习使用，本着开源精神分享给大家，勿拍砖，欢迎转载（注明出处）。&lt;/p&gt;
+
+&lt;p&gt;博客这里显示demo效果不是很好，请移步至&lt;a title=&quot;demo&quot; href=&quot;http://jsfiddle.net/xvfeng/v5kZS/1/&quot; target=&quot;_blank&quot;&gt;jsfiddle&lt;/a&gt; 获得实时效果。&lt;/p&gt;
+
+&lt;h1&gt;简介&lt;/h1&gt;
+
+
+&lt;p&gt;过去，不管是开发者还是用户都不太喜欢网页表单元素，原因在于建立表单的过程和所带来的用户体验都不能使两者满意。但是HTML5带来了新的转机。一些新的表单元素，属性，输入框类型，基于浏览器的表单验证，CSS3样式技术和表单数据对象等都使得创建表单更加容易，当然也更加充满乐趣。&lt;/p&gt;
+
+&lt;h2&gt;浏览器支持&lt;/h2&gt;
+
+
+&lt;p&gt;笔者写这篇文章的时候，各种浏览器对于所有的新表单元素，输入框元素和属性等的支持都存在很大区别。即使对于某些被浏览器所支持的特性，不同浏览器却呈现出不同的行为。浏览器对于HTML5表单的支持也正在快速的变化当中。在编写这边文章的同时，你可以查看这个&lt;a title=&quot;表格&quot; href=&quot;http://wufoo.com/html5/&quot; target=&quot;_blank&quot;&gt;表格&lt;/a&gt;来查看浏览器对于表单的最新支持情况。&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;h1&gt;新特性概览&lt;/h1&gt;
+
+
+&lt;h2&gt;新元素&lt;/h2&gt;
+
+
+&lt;p&gt;HTML5对于输入框和表单引入的新元素&lt;/p&gt;
+
+&lt;table class=&quot;alternating&quot;&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope=&quot;col&quot;&gt;元素&lt;/th&gt;
+&lt;th scope=&quot;col&quot;&gt;用途&lt;/th&gt;
+&lt;th scope=&quot;col&quot;&gt;注释&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&lt;a href=&quot;http://dev.w3.org/html5/spec/Overview.html#the-progress-element&quot; target=&quot;_blank&quot;&gt;progress&lt;/a&gt;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Represents completion of a task.显示任务进度&lt;/td&gt;
+&lt;td&gt;The &lt;code&gt;progress&lt;/code&gt; element could represent the progress of a
+file being uploaded.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&lt;a href=&quot;http://dev.w3.org/html5/spec/Overview.html#the-meter-element&quot; target=&quot;_blank&quot;&gt;meter&lt;/a&gt;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Represents a scalar measurement within a known range.显示可控范围&lt;/td&gt;
+&lt;td&gt;The &lt;code&gt;meter&lt;/code&gt; element could be used to represent something
+like a temperature or weight measurement.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&lt;a href=&quot;http://dev.w3.org/html5/spec/Overview.html#the-datalist-element&quot; target=&quot;_blank&quot;&gt;datalist&lt;/a&gt;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Represents a set of &lt;code&gt;option&lt;/code&gt; elements that can be used in
+combination with the new &lt;code&gt;list&lt;/code&gt; attribute for input to make
+dropdown menus.下拉列表显示&lt;/td&gt;
+&lt;td&gt;When the input with the associated datalist gets focus, a dropdown
+menu appears and contains the values from the &lt;code&gt;datalist&lt;/code&gt;.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&lt;a href=&quot;http://dev.w3.org/html5/spec/Overview.html#the-keygen-element&quot; target=&quot;_blank&quot;&gt;keygen&lt;/a&gt;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;A control for key-pair generation.&lt;/td&gt;
+&lt;td&gt;When the form is submitted, the private key gets stored in the local
+keystore, and the public key is sent to the server.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&lt;a href=&quot;http://dev.w3.org/html5/spec/Overview.html#the-output-element&quot; target=&quot;_blank&quot;&gt;output&lt;/a&gt;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Displays the results of a calculation.显示计算结果&lt;/td&gt;
+&lt;td&gt;An example use of the &lt;code&gt;output&lt;/code&gt; element could be to
+display the sum of the values of two input elements.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;h2&gt;新输入框类型&lt;/h2&gt;
+
+
+&lt;p&gt;HTML5引入了13种新的输入框类型。对于浏览器不支持的类型，自动显示为普通的文本输入框。&lt;/p&gt;
+
+&lt;table class=&quot;alternating&quot;&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope=&quot;col&quot;&gt;输入类型&lt;/th&gt;
+&lt;th scope=&quot;col&quot;&gt;用途&lt;/th&gt;
+&lt;th scope=&quot;col&quot;&gt;注释&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;tel&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a telephone number.用于输入电话号码&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;tel&lt;/code&gt; does not enforce a particular syntax, so if you
+want to ensure a particular format, you can use &lt;code&gt;pattern&lt;/code&gt; or
+&lt;code&gt;setCustomValidity()&lt;/code&gt; to do additional validation.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;search&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;To prompt users to enter text that they want to search for.供用户输入搜索文字&lt;/td&gt;
+&lt;td&gt;The difference between &lt;code&gt;search&lt;/code&gt; and &lt;code&gt;text&lt;/code&gt; is
+primarily stylistic. Using an input type of &lt;code&gt;search&lt;/code&gt; might
+result in the input field being styled in a way that is consistent with
+that platform's search fields.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;url&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a single URL.用于输入单一URL地址&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;url&lt;/code&gt; is intended for entering a single, &lt;a href=&quot;http://www.w3.org/TR/html5/urls.html#absolute-url&quot; target=&quot;_blank&quot;&gt;
+absolute URL&lt;/a&gt;, which represents a pretty wide range of values.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;email&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering either a single email address or a list of email
+addresses.单一或多个email邮箱地址&lt;/td&gt;
+&lt;td&gt;If the &lt;code&gt;multiple&lt;/code&gt; attribute is specified, then multiple
+email addresses can be entered, separated by commas.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;datetime&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a date and time with the time zone set to UTC.用于输入日期时间&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;date&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a date with no time zone.日期&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;month&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a date with a year and a month, but no time zone.月份&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;week&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a date that consists of a week-year number and a week
+number, but no time zone.星期&lt;/td&gt;
+&lt;td&gt;An example of this format is 2011-W05 for the fifth week of 2011.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;time&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a time value with hour, minute, seconds, and fractional
+seconds, but no time zone.时间&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;datetime-local&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For entering a date and time with no time zone.本地化时间&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;number&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For numerical input.数字&lt;/td&gt;
+&lt;td&gt;Valid values are &lt;a href=&quot;http://www.w3.org/TR/html5/common-microsyntaxes.html#valid-floating-point-number&quot; target=&quot;_blank&quot;&gt;floating point numbers&lt;/a&gt;.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;range&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For numerical input, but unlike &lt;code&gt;number&lt;/code&gt;, the actual
+is not important.范围&lt;/td&gt;
+&lt;td&gt;The implementation of the range control is a slider in most
+browsers that support it.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;color&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For choosing color through a color well control.颜色&lt;/td&gt;
+&lt;td&gt;The value must be a
+&lt;a href=&quot;http://www.w3.org/TR/html5/common-microsyntaxes.html#valid-lowercase-simple-color&quot; target=&quot;_blank&quot;&gt;valid lowercase simple color&lt;/a&gt; such as #ffffff.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;h3 id=&quot;toc-inputs-attributes-attributes&quot;&gt;新的输入框属性&lt;/h3&gt;
+
+
+&lt;p&gt;HTML5同时针对输入框和表单元素引入了一些新的属性&lt;/p&gt;
+
+&lt;table class=&quot;alternating&quot;&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope=&quot;col&quot;&gt;Attribute&lt;/th&gt;
+&lt;th scope=&quot;col&quot;&gt;Purpose&lt;/th&gt;
+&lt;th scope=&quot;col&quot;&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;autofocus&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Focuses the input on the element when the page is loaded.页面加载完毕后自动锁定至输入框&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;autofocus&lt;/code&gt; can be applied to input, select, textarea,
+and button.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;placeholder&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Gives the user a hint about what sort of data they should enter.占位符&lt;/td&gt;
+&lt;td&gt;The placeholder value is displayed in light text
+until the element gets focus and the user enters some data. It can be
+specified on input and textarea.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;form&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Specifies one or more forms to which the input element belongs.定义输入框元素&lt;/td&gt;
+&lt;td&gt;By using the &lt;code&gt;form&lt;/code&gt; attribute, the input elements can be
+placed anywhere on the page, not just within the form element. Also, a
+single input element can be associated with more than one form.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;required&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;A boolean attribute that means the element is required.必填项&lt;/td&gt;
+&lt;td&gt;The &lt;code&gt;required&lt;/code&gt; attribute is helpful for doing
+browser-based validation without using custom JavaScript.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;autocomplete&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For specifying that a field should not autocomplete or be pre-filled
+by the browser based on a user's past entries.自动补全&lt;/td&gt;
+&lt;td&gt;The &lt;code&gt;autocomplete&lt;/code&gt; attribute for fields like a credit
+card number or one-time password, which you don't want autocomplete. By
+default, &lt;code&gt;autocomplete&lt;/code&gt; is in the &lt;code&gt;on&lt;/code&gt; state, so
+if you want to disable it, set it to &lt;code&gt;off&lt;/code&gt;.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pattern&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For validating an element's value against a regular expression.正则&lt;/td&gt;
+&lt;td&gt;When using a &lt;code&gt;pattern&lt;/code&gt;, you should also specify a
+&lt;code&gt;title&lt;/code&gt; value to give the user a description of the pattern
+that's expected.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;dirname&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For submitting the directionality of the control with the form.文字方向&lt;/td&gt;
+&lt;td&gt;For example, if the user entered text data with right-to-left
+directionality and the input element contained the &lt;code&gt;dirname&lt;/code&gt;
+attribute, then an indication of the right-to-left directionality would
+be submitted along with the input value.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;novalidate&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For disabling form submission validation when specified on a form
+element.禁用验证&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;formaction&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For overriding the action attribute on the form element.覆盖表单元素的动作属性&lt;/td&gt;
+&lt;td&gt;This attribute is supported on &lt;code&gt;input&lt;/code&gt; and
+&lt;code&gt;button&lt;/code&gt; elements.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;formenctype&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For overriding the enctype attribute on the form element.覆盖表单元素编码属性&lt;/td&gt;
+&lt;td&gt;This attribute is supported on &lt;code&gt;input&lt;/code&gt; and
+&lt;code&gt;button&lt;/code&gt; elements.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;formmethod&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For overriding the method attribute on the form element.覆盖表单元素方法属性&lt;/td&gt;
+&lt;td&gt;This attribute is supported on &lt;code&gt;input&lt;/code&gt; and
+&lt;code&gt;button&lt;/code&gt; elements.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;formnovalidate&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For overriding the novalidate attribute on the form element.覆盖禁用验证属性&lt;/td&gt;
+&lt;td&gt;This attribute is supported on &lt;code&gt;input&lt;/code&gt; and
+&lt;code&gt;button&lt;/code&gt; elements.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;formtarget&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;For overriding the target attribute on the form element.覆盖目标属性&lt;/td&gt;
+&lt;td&gt;This attribute is supported on &lt;code&gt;input&lt;/code&gt; and
+&lt;code&gt;button&lt;/code&gt; elements.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;h2&gt;表单数据对象&lt;/h2&gt;
+
+
+&lt;p&gt;XMLHttpRequest一项新的提升就是对FormData(表单数据)的支持。有了FormData对象，你可以使用XMLHttpRequest技术建立并发送数据，当然还有文件。在使用这项技术时，数据传输的格式和之前通过表单的submit()方法提交的格式一样。&lt;/p&gt;
+
+&lt;p&gt;FormData允许通过使用JavaScript来建立HTML表单，然后使用XMLHttpRequest.send()方法来提交。范例如下：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;var formData = new FormData();
+formData.append(&amp;quot;part_num&amp;quot;, &amp;quot;123ABC&amp;quot;); 
+formData.append(&amp;quot;part_price&amp;quot;, 7.95);
+formData.append(&amp;quot;part_image&amp;quot;, somefile)
+
+var xhr = new XMLHttpRequest();
+xhr.open(&amp;quot;POST&amp;quot;, &amp;quot;http://some.url/&amp;quot;);  
+xhr.send(formData);&lt;/pre&gt;
+
+
+&lt;p&gt;你同样也可使用FormData在提交数据之前在已存在的表单里添加数据。&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;var formElement = document.getElementById(&amp;quot;someFormElement&amp;quot;);
+var formData = new FormData(formElement);
+formData.append(&amp;quot;part_description&amp;quot;, &amp;quot;The best part ever!&amp;quot;);
+
+var xhr = new XMLHttpRequest();
+xhr.open(&amp;quot;POST&amp;quot;, &amp;quot;http://some.url/&amp;quot;);
+xhr.send(formData);&lt;/pre&gt;
+
+
+&lt;h1&gt;基于浏览器的表单验证&lt;/h1&gt;
+
+
+&lt;p&gt;坦白说，表单验证令人蛋疼，但是却又不得不做。对于现在的基于客户端的表单验证，大多数人都会编写自定义的JavaScript或者使用JS库去实现表单验证，从而确定用户在提交数据之前已经在必填项填入相应数据。&lt;/p&gt;
+
+&lt;p&gt;新的输入框属性，例如required和pattern结合了CSS伪类选择器来简化验证和显示过程。同时也有一些高级的验证技术允许你自定义验证过程。&lt;/p&gt;
+
+&lt;h2&gt;REQUIRED属性&lt;/h2&gt;
+
+
+&lt;p&gt;如果required属性存在，在表单提交之前输入框一定要包含数据。下面就是一个使用email类型来确保用户在提交数据之前已经输入了合法的邮箱地址的例子:&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;&amp;lt;input type=&amp;quot;email&amp;quot; id=&amp;quot;email_addr&amp;quot; name=&amp;quot;email_addr&amp;quot; required /&amp;gt;&lt;/pre&gt;
+
+
+&lt;h2&gt;PATTERN属性&lt;/h2&gt;
+
+
+&lt;p&gt;patterns使用了正则表达式来验证输入框区域。下面这个例子演示了在必填项输入框输入零件编号。我们要求下面输入的零件编号包含3个大写英文字母以及4个数字。required和pattern的使用确保了用户在提交数据之前已经根据要求输入了对应的数据类型。在用户鼠标悬浮在区域上时，title属性的内容将会被显示。&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;&amp;lt;input type=&amp;quot;text&amp;quot; id=&amp;quot;part&amp;quot; name=&amp;quot;part&amp;quot; required pattern=&amp;quot;[A-Z]{3}[0-9]{4}&amp;quot;
+       title=&amp;quot;Part numbers consist of 3 uppercase letters followed by 4 digits.&amp;quot;/&amp;gt;&lt;/pre&gt;
+
+
+&lt;p&gt;上面的例子中，我们还可以通过使用CSS来高亮显示不合法的数据类型。代码如下&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;:invalid {
+  border: 2px solid #ff0000;
+}&lt;/pre&gt;
+
+
+&lt;h2&gt;FORMNOVALIDATE属性&lt;/h2&gt;
+
+
+&lt;p&gt;formnovalidate属性可以应用在输入框或者按钮上。如果代码中包含了该属性，用户提交验证将会被禁用。下面这个例子演示了如何实现在点击submit按钮时验证，而在点击save按钮时不进行验证。&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;&amp;lt;input type=&amp;quot;text&amp;quot; id=&amp;quot;part&amp;quot; name=&amp;quot;part&amp;quot; required pattern=&amp;quot;[A-Z]{3}[0-9]{4}&amp;quot;
+       title=&amp;quot;Part numbers consist of 3 uppercase letters followed by 4 digits.&amp;quot;/&amp;gt;
+&amp;lt;input type=&amp;quot;submit&amp;quot; formnovalidate value=&amp;quot;Save&amp;quot;&amp;gt;
+&amp;lt;input type=&amp;quot;submit&amp;quot; value=&amp;quot;Submit&amp;quot;&amp;gt;&lt;/pre&gt;
+
+
+&lt;h2&gt;Constraint Validation API(限制验证)&lt;/h2&gt;
+
+
+&lt;p&gt;Constraint Validation API提供了强大自定义表单验证方法。该API可以允许设定自定义错误，检查元素是否合法，判断元素不合法等。下面这个例子演示判断用户两次输入邮箱地址相同。&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;&amp;lt;label&amp;gt;Email:&amp;lt;/label&amp;gt;
+&amp;lt;input type=&amp;quot;email&amp;quot; id=&amp;quot;email_addr&amp;quot; name=&amp;quot;email_addr&amp;quot;&amp;gt;
+
+&amp;lt;label&amp;gt;Repeat Email Address:&amp;lt;/label&amp;gt;
+&amp;lt;input type=&amp;quot;email&amp;quot; id=&amp;quot;email_addr_repeat&amp;quot; name=&amp;quot;email_addr_repeat&amp;quot; oninput=&amp;quot;check(this)&amp;quot;&amp;gt;
+
+&amp;lt;script&amp;gt;
+function check(input) {
+  if (input.value != document.getElementById(&amp;#039;email_addr&amp;#039;).value) {
+    input.setCustomValidity(&amp;#039;The two email addresses must match.&amp;#039;);
+  } else {
+    // input is valid -- reset the error message
+    input.setCustomValidity(&amp;#039;&amp;#039;);
+  }
+}
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+
+&lt;h1&gt;完整范例演示&lt;/h1&gt;
+
+
+&lt;p&gt;下面这段代码演示了使用以上的技术来实现一个预定请求的表单。&lt;/p&gt;
+
+&lt;p&gt;&lt;form&gt;&lt;label&gt;Full name:&lt;/label&gt;
+&lt;input id=&quot;full_name&quot; type=&quot;text&quot; name=&quot;full_name&quot; /&gt;
+&lt;label&gt;Email address:&lt;/label&gt;
+&lt;input id=&quot;email_addr&quot; type=&quot;email&quot; name=&quot;email_addr&quot; /&gt;
+&lt;label&gt;Repeat email address:&lt;/label&gt;
+&lt;input id=&quot;email_addr_repeat&quot; type=&quot;email&quot; name=&quot;email_addr_repeat&quot; /&gt;
+&lt;label&gt;Arrival date:&lt;/label&gt;
+&lt;input id=&quot;arrival_dt&quot; type=&quot;date&quot; name=&quot;arrival_dt&quot; /&gt;
+&lt;label&gt;Number of nights (rooms are $99.00 per night):&lt;/label&gt;
+&lt;input id=&quot;nights&quot; type=&quot;number&quot; name=&quot;nights&quot; value=&quot;1&quot; /&gt;
+&lt;label&gt;Number of guests (each additional guest adds $10.00 per night):&lt;/label&gt;
+&lt;input id=&quot;guests&quot; type=&quot;number&quot; name=&quot;guests&quot; value=&quot;1&quot; /&gt;
+&lt;label&gt;Estimated total:&lt;/label&gt;
+$&lt;output id=&quot;total&quot; name=&quot;total&quot;&gt;99&lt;/output&gt;.00&lt;label&gt;Promo code:&lt;/label&gt;
+&lt;input id=&quot;promo&quot; title=&quot;Promo codes consist of 6 alphanumeric characters.&quot; type=&quot;text&quot; name=&quot;promo&quot; /&gt;
+&lt;input type=&quot;submit&quot; value=&quot;Request Reservation&quot; /&gt;&lt;/form&gt;&lt;script type=&quot;text/javascript&quot;&gt;// &amp;lt;![CDATA[
+function check(input){if(input.value!=document.getElementById(&amp;lsquo;email_addr&amp;rsquo;).value){input.setCustomValidity(&amp;lsquo;The two email addresses must match.&amp;rsquo;);}else{input.setCustomValidity(&amp;lsquo;&amp;rsquo;);}}
+// ]]]]&gt;&amp;lt;![CDATA[&gt;&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;HTML和JavaScript代码如下&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;&amp;lt;form oninput=&amp;quot;total.value = (nights.valueAsNumber * 99) + 
+ ((guests.valueAsNumber - 1) * 10)&amp;quot;&amp;gt;
+
+  &amp;lt;label&amp;gt;Full name:&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&amp;quot;text&amp;quot; id=&amp;quot;full_name&amp;quot; name=&amp;quot;full_name&amp;quot; placeholder=&amp;quot;Jane Doe&amp;quot; required&amp;gt;
+
+  &amp;lt;label&amp;gt;Email address:&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&amp;quot;email&amp;quot; id=&amp;quot;email_addr&amp;quot; name=&amp;quot;email_addr&amp;quot; required&amp;gt;
+
+  &amp;lt;label&amp;gt;Repeat email address:&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&amp;quot;email&amp;quot; id=&amp;quot;email_addr_repeat&amp;quot; name=&amp;quot;email_addr_repeat&amp;quot; required 
+   oninput=&amp;quot;check(this)&amp;quot;&amp;gt;
+
+  &amp;lt;label&amp;gt;Arrival date:&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&amp;quot;date&amp;quot; id=&amp;quot;arrival_dt&amp;quot; name=&amp;quot;arrival_dt&amp;quot; required&amp;gt;
+
+  &amp;lt;label&amp;gt;Number of nights (rooms are $99.00 per night):&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&amp;quot;number&amp;quot; id=&amp;quot;nights&amp;quot; name=&amp;quot;nights&amp;quot; value=&amp;quot;1&amp;quot; min=&amp;quot;1&amp;quot; max=&amp;quot;30&amp;quot; required&amp;gt;
+
+  &amp;lt;label&amp;gt;Number of guests (each additional guest adds $10.00 per night):&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&amp;quot;number&amp;quot; id=&amp;quot;guests&amp;quot; name=&amp;quot;guests&amp;quot; value=&amp;quot;1&amp;quot; min=&amp;quot;1&amp;quot; max=&amp;quot;4&amp;quot; required&amp;gt;
+
+  &amp;lt;label&amp;gt;Estimated total:&amp;lt;/label&amp;gt;
+  $&amp;lt;output id=&amp;quot;total&amp;quot; name=&amp;quot;total&amp;quot;&amp;gt;99&amp;lt;/output&amp;gt;.00
+  &amp;lt;br&amp;gt;&amp;lt;br&amp;gt;
+
+  &amp;lt;label&amp;gt;Promo code:&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&amp;quot;text&amp;quot; id=&amp;quot;promo&amp;quot; name=&amp;quot;promo&amp;quot; pattern=&amp;quot;[A-Za-z0-9]{6}&amp;quot; 
+   title=&amp;quot;Promo codes consist of 6 alphanumeric characters.&amp;quot;&amp;gt;
+
+  &amp;lt;input type=&amp;quot;submit&amp;quot; value=&amp;quot;Request Reservation&amp;quot; /&amp;gt; 
+&amp;lt;/form&amp;gt;
+
+&amp;lt;script&amp;gt;
+function check(input) {
+  if (input.value != document.getElementById(&amp;#039;email_addr&amp;#039;).value) {
+    input.setCustomValidity(&amp;#039;The two email addresses must match.&amp;#039;);
+  } else {
+    // input is valid -- reset the error message
+    input.setCustomValidity(&amp;#039;&amp;#039;);
+  }
+}
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+
+&lt;p&gt;CSS代码如下：&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;:invalid { 
+  border-color: #e88;
+  -webkit-box-shadow: 0 0 5px rgba(255, 0, 0, .8);
+  -moz-box-shadow: 0 0 5px rbba(255, 0, 0, .8);
+  -o-box-shadow: 0 0 5px rbba(255, 0, 0, .8);
+  -ms-box-shadow: 0 0 5px rbba(255, 0, 0, .8);
+  box-shadow:0 0 5px rgba(255, 0, 0, .8);
+}
+
+:required {
+  border-color: #88a;
+  -webkit-box-shadow: 0 0 5px rgba(0, 0, 255, .5);
+  -moz-box-shadow: 0 0 5px rgba(0, 0, 255, .5);
+  -o-box-shadow: 0 0 5px rgba(0, 0, 255, .5);
+  -ms-box-shadow: 0 0 5px rgba(0, 0, 255, .5);
+  box-shadow: 0 0 5px rgba(0, 0, 255, .5);
+}
+
+form {
+  width:300px;
+  margin: 20px auto;
+}
+
+input {
+  font-family: &amp;quot;Helvetica Neue&amp;quot;, Helvetica, Arial, sans-serif;
+  border:1px solid #ccc;
+  font-size:20px;
+  width:300px;
+  min-height:30px;
+  display:block;
+  margin-bottom:15px;
+  margin-top:5px;
+  outline: none;
+
+  -webkit-border-radius:5px;
+  -moz-border-radius:5px;
+  -o-border-radius:5px;
+  -ms-border-radius:5px;
+  border-radius:5px;
+}
+
+input[type=submit] {
+  background:none;
+  padding:10px;
+}&lt;/pre&gt;
+
+
+&lt;p&gt;原文链接：&lt;a href=&quot;http://www.html5rocks.com/en/tutorials/forms/html5forms/&quot;&gt;http://www.html5rocks.com/en/tutorials/forms/html5forms/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;原创翻译，转载请注明出处:&lt;a title=&quot;Coursegarden&quot; href=&quot;http://coursegarden.com&quot; target=&quot;_blank&quot;&gt;Coursegarden&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>jQuery文件上传框样式插件简单使用说明</title>
+   <link href="http://xvfeng.me/posts/filestyle"/>
+   <updated>2012-07-12T21:53:00+08:00</updated>
+   <id>http://xvfeng.me/posts/filestyle</id>
+   <content type="html">&lt;p&gt;浏览器通常不允许为文件输入框添加样式。今天介绍的这个jQuery filestyle插件就是来解决这个问题的。它允许你使用图片来代替默认的浏览器文件按钮。同样的，你也可以使用css吧文件名区域定义成普通的文本框。该插件仅仅由简单的JavaScript和jQuery 实现。&lt;/p&gt;
+
+&lt;p&gt;插件如何工作？&lt;/p&gt;
+
+&lt;p&gt;首先将文件输入区域用div嵌套。这个div同时拥有作为背景图片的按钮。图片按钮与浏览器上的普通文件输入区域按钮对齐。之后我们把默认的文件输入区域的透明度设为0.之后所选中的文件就会一普通文本输入框来模拟文件输入框来进行显示。&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;p&gt;如何使用？&lt;/p&gt;
+
+&lt;p&gt;文件样式完全取决于jQuery.首先将代码加载到头部。&lt;/p&gt;
+
+&lt;pre class=&quot;brush: html; gutter: true&quot;&gt;&amp;lt;script type=&amp;quot;text/javascript&amp;quot; src=&amp;quot;jquery.js&amp;quot;&amp;gt;&amp;lt;/script&amp;gt;
+
+&amp;lt;script type=&amp;quot;text/javascript&amp;quot; src=&amp;quot;jquery.filestyle.js&amp;quot;&amp;gt;&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+
+&lt;p&gt;同时你还需要一张你自己定义的按钮图片。以下为示例图片&lt;/p&gt;
+
+&lt;p&gt;之后就是开始定义外观了&lt;/p&gt;
+
+&lt;pre class=&quot;brush: javascript; gutter: true&quot;&gt;$(&amp;quot;input[type=file]&amp;quot;).filestyle({
+image: &amp;quot;choose-file.gif&amp;quot;,
+imageheight : 22,
+imagewidth : 82,
+width : 250
+});&lt;/pre&gt;
+
+
+&lt;p&gt;下面就是插件的下载地址了&lt;/p&gt;
+
+&lt;p&gt;最新版插件地址： &lt;a title=&quot;源代码&quot; href=&quot;http://www.appelsiini.net/download/jquery.filestyle.js&quot;&gt;source&lt;/a&gt; 或者 &lt;a title=&quot;minified&quot; href=&quot;http://www.appelsiini.net/download/jquery.filestyle.mini.js&quot;&gt;minified&lt;/a&gt; 版本.&lt;/p&gt;
+
+&lt;p&gt;插件作者主页：http://www.appelsiini.net&lt;/p&gt;
+</content>
+ </entry>
+ 
+ 
+</feed>

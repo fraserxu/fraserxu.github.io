@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Nodejs Job Queue With Kue</title>
+  <meta name="author" content="Fraser Xu" />
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+  <link rel="stylesheet" href="/css/prettify.css" type="text/css" media="screen, projection" />
+  <script type="text/javascript" src="/js/prettify.js"></script>
+  <script type="text/javascript" src="/js/prettify-lua.js"></script>
+</head>
+<body onload="prettyPrint()">
+
+  <div class="container">
+
+    <div class="header">
+      <h1><a href="/">Fraser Xu's</a></h1>
+      <h2>Thoughts on life and code</h2>
+    </div>
+
+    <div class="nav">
+      <a href="/">Cover</a>
+      <a href="/archive.html">Archive</a>
+      <a href="/about.html">About</a>
+      <a href="/atom.xml">Subscribe</a>
+    </div>
+
+    <div class="content">
+	<h1>Nodejs Job Queue With Kue</h1>
+	<p class="meta">12 Sep 2013</p>
+	<p>As our project move from v0.0.1 to v0.0.2, we need to add a job queue into our existing project.</p>
+
+<p>The reason behind this is that while performing the whole story, we have multiple operation in a row like init storage, update cloud information from aws, log out error, etc. So the job queue is need to be added here.</p>
+
+<p>We search solutions over the internet with google to find a way to implement this in nodejs, and <a href="http://learnboost.github.com/kue/">kue</a> comes to rescue. And after checking that we found it was an open source project contribute by the <a href="http://learnboost.com">LearnBoost</a> guys.</p>
+
+<p>So the LearnBoost crew are up to their goodness once again. They are prolific with open source, adn have now make Kue avaliable on <a href="https://github.com/learnboost/kue">Github</a>.</p>
+
+<blockquote><p>Kue is a feature rich priority job queue for node.js backed by redis. A key feature of Kue is it’s clean user-interface for viewing and managing queued, active, failed, and completed jobs.</p></blockquote>
+
+<p>As described above, it&rsquo;s using node.js along with redis, and also have a beautiful front-end interface. So that&rsquo;s just check the <code>package.json</code> file to see what&rsquo;s in there:</p>
+
+<script src="https://gist.github.com/xufeng123/5558696.js"></script>
+
+
+<p>Before this project, I don&rsquo;t have any background information around this. So I started everything from beginning.</p>
+
+<p>First let&rsquo;s have a look at an example list in the <code>readme.md</code> file:</p>
+
+<script src="https://gist.github.com/xufeng123/5558699.js"></script>
+
+
+<p>Simple and easy to understand, it just requires the <code>kue</code> library and then create a new <code>jobs</code> instance with the <code>createQueue()</code> method.</p>
+
+<blockquote><p>Calling jobs.create() with the type of job (&ldquo;email&rdquo;), and arbitrary job data will return a Job, which can then be save()ed, adding it to redis, with a default priority level of &ldquo;normal&rdquo;. The save() method optionally accepts a callback, responding with an error if something goes wrong. The title key is special-cased, and will display in the job listings within the UI, making it easier to find a specific job.</p></blockquote>
+
+<script src="https://gist.github.com/xufeng123/5558708.js"></script>
+
+
+<p>After that, It will create a jobs to be called later.</p>
+
+<p>And that&rsquo;s it, our job is created. And once we need to excute the job later, What we need to do is just use the process method:</p>
+
+<script src="https://gist.github.com/xufeng123/5558712.js"></script>
+
+
+<p>Kue also have other rather useful method avaible for us to use like <strong>job priority</strong> which can be used to control the priority of jobs to be excuted, <strong>failure attempts</strong> which can excuted the job after the job failed serval times, <strong>job log</strong> and so on. The <code>readme.md</code> is quite clear and simple to get started.</p>
+
+<p>At the end of the <code>readme.md</code>, there&rsquo;s also two videos <a href="http://www.screenr.com/oyNs">Introduction to Kue</a> and <a href="http://nodetuts.com/tutorials/27-kue-jobs.html#video">API walkthrough to Kue</a> which is quite userful I think.</p>
+
+<p>And that&rsquo;s it, there&rsquo;s more fine to play with this.</p>
+
+<p>I get excited about the vast majority of what comes out of LearnBoost. Node and redis are also a fantastic combination, especially for job systems.</p>
+
+</div>
+
+<div class="related">
+  <h2>~ Related ~</h2>
+  <ul class="posts">
+    
+      <li><span>12 Sep 2013</span> · <a href="/posts/Using-Handlebarsjs-with-Expressjs">在Express项目中使用Handlebars模板引擎</a></li>
+    
+      <li><span>07 Aug 2013</span> · <a href="/posts/Form-validation-with-AngularJS">AngularJS表单验证</a></li>
+    
+      <li><span>22 Jun 2013</span> · <a href="/posts/Nginx-for-developers">写给Web开发人员看的Nginx介绍</a></li>
+    
+      <li><span>07 Jun 2013</span> · <a href="/posts/understanding-expressjs">(譯)深入理解Express.js</a></li>
+    
+      <li><span>07 Jun 2013</span> · <a href="/posts/thoughts-of-these-days">Life Sucks</a></li>
+    
+  </ul>
+</div>
+
+  </div>
+</body>
+</html>
