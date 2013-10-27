@@ -1150,6 +1150,7 @@ save_button.addEventListener('click', function() {
 var upload_button = document.querySelector('#upload');
 upload_button.addEventListener('click', function() {
 	var imgUrl = document.querySelector('#target').getAttribute('src');
+	console.log(imgUrl)
 	var imgUrl_client = '76e5943d38e8f8e';
 	// var req = hq.post('https://api.imgur.com/3/image');
 	var req = hq.post('https://api.imgur.com/3/image');
@@ -1157,7 +1158,7 @@ upload_button.addEventListener('click', function() {
 	req.pipe(concat(function (err, data) {
     console.log('data=' + data);
 	}));
-	req.end(qs.stringify({ image: imgUrl }));
+	req.end(qs.stringify({ image: imgUrl.split(',')[1] , type: 'base64'}));
 })
 
 
