@@ -1168,7 +1168,7 @@ upload_button.addEventListener('click', function() {
   }
   request(options, function(error, res, body) {
     var data = JSON.parse(body).data;
-    console.log(data.link)
+    alert('You image url is ', data.link)
   })
   // var req = hq.post('https://api.imgur.com/3/image');
   // var req = hq.post('https://api.imgur.com/3/image');
