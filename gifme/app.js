@@ -979,8 +979,8 @@ function GifReaderLZWOutputIndexStream(code_stream, p, output, output_length) {
 module.exports = GifWriter;
 },{}],3:[function(require,module,exports){
 module.exports = {
-  startVideoStreaming: startVideoStreaming,
-  stopVideoStreaming: stopVideoStreaming
+	startVideoStreaming: startVideoStreaming,
+	stopVideoStreaming: stopVideoStreaming
 };
 
 'use strict';
@@ -988,9 +988,9 @@ module.exports = {
 // A couple of shims for having a common interface
 window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 navigator.getMedia = (navigator.getUserMedia ||
-  navigator.webkitGetUserMedia ||
-  navigator.mozGetUserMedia ||
-  navigator.msGetUserMedia
+	navigator.webkitGetUserMedia ||
+	navigator.mozGetUserMedia ||
+	navigator.msGetUserMedia
 );
 
 var video;
@@ -1006,46 +1006,46 @@ var noGUMSupportTimeout;
  */
 function startStreaming(errorCallback, onStreaming, okCallback) {
 
-  var videoElement;
-  var cameraStream;
-  var attempts = 0;
-  var readyListener = function(event) {
-    findVideoSize();
-  };
-  var findVideoSize = function() {
-    if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-      videoElement.removeEventListener('loadeddata', readyListener);
-      onDimensionsReady(videoElement.videoWidth, videoElement.videoHeight);
-    } else {
-      if (attempts < 10) {
-        attempts++;
-        setTimeout(findVideoSize, 200);
-      } else {
-        onDimensionsReady(640, 480);
-      }
-    }
-  };
-  var onDimensionsReady = function(width, height) {
-    okCallback(cameraStream, videoElement, width, height);
-  };
+	var videoElement;
+	var cameraStream;
+	var attempts = 0;
+	var readyListener = function(event) {
+		findVideoSize();
+	};
+	var findVideoSize = function() {
+		if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+			videoElement.removeEventListener('loadeddata', readyListener);
+			onDimensionsReady(videoElement.videoWidth, videoElement.videoHeight);
+		} else {
+			if (attempts < 10) {
+				attempts++;
+				setTimeout(findVideoSize, 200);
+			} else {
+				onDimensionsReady(640, 480);
+			}
+		}
+	};
+	var onDimensionsReady = function(width, height) {
+		okCallback(cameraStream, videoElement, width, height);
+	};
 
-  videoElement = document.createElement('video');
-  videoElement.autoplay = true;
+	videoElement = document.createElement('video');
+	videoElement.autoplay = true;
 
-  videoElement.addEventListener('loadeddata', readyListener);
+	videoElement.addEventListener('loadeddata', readyListener);
 
-  navigator.getMedia({
-    video: true
-  }, function(stream) {
-    onStreaming();
-    if (videoElement.mozSrcObject) {
-      videoElement.mozSrcObject = stream;
-    } else {
-      videoElement.src = window.URL.createObjectURL(stream);
-    }
-    cameraStream = stream;
-    videoElement.play();
-  }, errorCallback);
+	navigator.getMedia({
+		video: true
+	}, function(stream) {
+		onStreaming();
+		if (videoElement.mozSrcObject) {
+			videoElement.mozSrcObject = stream;
+		} else {
+			videoElement.src = window.URL.createObjectURL(stream);
+		}
+		cameraStream = stream;
+		videoElement.play();
+	}, errorCallback);
 }
 
 /**
@@ -1054,41 +1054,41 @@ function startStreaming(errorCallback, onStreaming, okCallback) {
  * comment for more info)
  */
 function startVideoStreaming(errorCallback, okCallback) {
-  if (navigator.getMedia) {
-    // Some browsers apparently have support for video streaming because of the
-    // presence of the getUserMedia function, but then do not answer our
-    // calls for streaming.
-    // So we'll set up this timeout and if nothing happens after a while, we'll
-    // conclude that there's no actual getUserMedia support.
-    noGUMSupportTimeout = setTimeout(onNoGUMSupport, 10000);
-    startStreaming(errorCallback, function() {
-      // The streaming started somehow, so we can assume /there is/
-      // gUM support
-      clearTimeout(noGUMSupportTimeout);
-    }, function(stream, videoElement, width, height) {
-      // Keep references, for stopping the stream later on.
-      cameraStream = stream;
-      video = videoElement;
-      okCallback(stream, videoElement, width, height);
-    });
-  } else {
-    onNoGUMSupport();
-  }
-  function onNoGUMSupport() {
-    errorCallback('Native device media streaming (getUserMedia) not supported in this browser.');
-  }
+	if (navigator.getMedia) {
+		// Some browsers apparently have support for video streaming because of the
+		// presence of the getUserMedia function, but then do not answer our
+		// calls for streaming.
+		// So we'll set up this timeout and if nothing happens after a while, we'll
+		// conclude that there's no actual getUserMedia support.
+		noGUMSupportTimeout = setTimeout(onNoGUMSupport, 10000);
+		startStreaming(errorCallback, function() {
+			// The streaming started somehow, so we can assume /there is/
+			// gUM support
+			clearTimeout(noGUMSupportTimeout);
+		}, function(stream, videoElement, width, height) {
+			// Keep references, for stopping the stream later on.
+			cameraStream = stream;
+			video = videoElement;
+			okCallback(stream, videoElement, width, height);
+		});
+	} else {
+		onNoGUMSupport();
+	}
+	function onNoGUMSupport() {
+		errorCallback('Native device media streaming (getUserMedia) not supported in this browser.');
+	}
 }
 
 function stopVideoStreaming() {
-  if (cameraStream) {
-    cameraStream.stop();
-  }
-  
-  if (video) {
-    video.pause();
-    video.src = null;
-    video = null;
-  }
+	if (cameraStream) {
+		cameraStream.stop();
+	}
+	
+	if (video) {
+		video.pause();
+		video.src = null;
+		video = null;
+	}
 }
 },{}],4:[function(require,module,exports){
 var VideoShooter = require('./videoShooter');
@@ -1099,8 +1099,8 @@ var qs = require('querystring');
 var videoShooter;
 
 var imgur= {
-  api: 'https://api.imgur.com/3/image',
-  client: '76e5943d38e8f8e'
+	api: 'https://api.imgur.com/3/image',
+	client: '76e5943d38e8f8e'
 };
 
 // buttons
@@ -1109,130 +1109,130 @@ var upload_button = document.querySelector('#upload');
 var capture_button = document.querySelector('#capture');
 
 if (navigator.getMedia) {
-  gumHelper.startVideoStreaming(function errorCb() {}, function successCallback(stream, videoElement, width, height) {
-    videoElement.width = width / 2;
-    videoElement.height = height / 2;
-    document.querySelector('#webcam').appendChild(videoElement);
-    videoElement.play();
-    videoShooter = new VideoShooter(videoElement);
-  });
+	gumHelper.startVideoStreaming(function errorCb() {}, function successCallback(stream, videoElement, width, height) {
+		videoElement.width = width / 2;
+		videoElement.height = height / 2;
+		document.querySelector('#webcam').appendChild(videoElement);
+		videoElement.play();
+		videoShooter = new VideoShooter(videoElement);
+	});
 } else {
-  alert('sorry, your browser does\'s support getMedia.');
+	alert('sorry, your browser does\'s support getMedia.');
 }
 
 function getScreenshot(callback, numFrames, interval) {
-  if (videoShooter) {
-    videoShooter.getShot(callback, numFrames, interval);
-  } else {
-    callback('');
-  }
+	if (videoShooter) {
+		videoShooter.getShot(callback, numFrames, interval);
+	} else {
+		callback('');
+	}
 };
 
 // capture a gif
 capture_button.addEventListener('click', function() {
-  getScreenshot(function(pictureData) {
-    save_button.disabled = false;
-    upload_button.disabled = false;
-  }, 10, 0.2);
+	getScreenshot(function(pictureData) {
+		save_button.disabled = false;
+		upload_button.disabled = false;
+	}, 10, 0.2);
 })
 
 // save to local
 save_button.addEventListener('click', function() {
-  var imgUrl = document.querySelector('#target').getAttribute('src');
-  var blob = dataURItoBlob(imgUrl, 'image/gif');
-  var filename = (document.querySelector('#filename').value || 'gifme') + '.gif';
+	var imgUrl = document.querySelector('#target').getAttribute('src');
+	var blob = dataURItoBlob(imgUrl, 'image/gif');
+	var filename = (document.querySelector('#filename').value || 'gifme') + '.gif';
 
-  saveAs(blob, filename);
+	saveAs(blob, filename);
 })
 
 // upload to imgur
 upload_button.addEventListener('click', function() {
-  upload_button.disabled = true;
-  var button_text = upload_button.innerHTML;
-  upload_button.innerHTML = 'uploading...';
+	upload_button.disabled = true;
+	var button_text = upload_button.innerHTML;
+	upload_button.innerHTML = 'uploading...';
 
-  var imgUrl = document.querySelector('#target').getAttribute('src');
-  var img_file = imgUrl.split(',')[1];
-  var options = {
-    url: imgur.api,
-    method: 'post',
-    headers: {
-      Authorization: 'Client-ID ' + imgur.client,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: qs.stringify({
-      type: 'base64',
-      image: img_file
-    })
-  }
-  request(options, function(error, res, body) {
-    upload_button.disabled = false;
-    upload_button.innerHTML = button_text;
-    var data = JSON.parse(body).data;
+	var imgUrl = document.querySelector('#target').getAttribute('src');
+	var img_file = imgUrl.split(',')[1];
+	var options = {
+		url: imgur.api,
+		method: 'post',
+		headers: {
+			Authorization: 'Client-ID ' + imgur.client,
+			'Content-Type': 'application/x-www-form-urlencoded'
+		},
+		body: qs.stringify({
+			type: 'base64',
+			image: img_file
+		})
+	}
+	request(options, function(error, res, body) {
+		upload_button.disabled = false;
+		upload_button.innerHTML = button_text;
+		var data = JSON.parse(body).data;
 
-    // add to dom
-    var link_box = document.createElement('input');
-    link_box.setAttribute('type', 'text');
-    link_box.setAttribute('autofocus', true);
-    link_box.value = data.link;
+		// add to dom
+		var link_box = document.createElement('input');
+		link_box.setAttribute('type', 'text');
+		link_box.setAttribute('autofocus', true);
+		link_box.value = data.link;
 
-    document.querySelector('#share_link').appendChild(link_box);
-  })
+		document.querySelector('#share_link').appendChild(link_box);
+	})
 });
 
 function dataURItoBlob(dataURI, dataTYPE) {
-  var binary = atob(dataURI.split(',')[1]),
-    array = [];
-  for (var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
-  return new Blob([new Uint8Array(array)], {
-    type: dataTYPE
-  });
+	var binary = atob(dataURI.split(',')[1]),
+		array = [];
+	for (var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
+	return new Blob([new Uint8Array(array)], {
+		type: dataTYPE
+	});
 }
 
 },{"./gumhelper":3,"./videoShooter":5,"browser-request":6,"filesaver.js":7,"querystring":8}],5:[function(require,module,exports){
 var Animated_GIF = require('./Animated_GIF/Animated_GIF.js');
 
 module.exports = function(videoElement) {
-  'use strict';
+	'use strict';
 
-  var canvas = document.createElement('canvas');
-  var context = canvas.getContext('2d');
+	var canvas = document.createElement('canvas');
+	var context = canvas.getContext('2d');
 
-  canvas.width = videoElement.width;
-  canvas.height = videoElement.height;
+	canvas.width = videoElement.width;
+	canvas.height = videoElement.height;
 
-  this.getShot = function(callback, numFrames, interval) {
-    numFrames = numFrames !== undefined ? numFrames : 3;
-    interval = interval !== undefined ? interval : 0.1; // In seconds
+	this.getShot = function(callback, numFrames, interval) {
+		numFrames = numFrames !== undefined ? numFrames : 3;
+		interval = interval !== undefined ? interval : 0.1; // In seconds
 
-    var pendingFrames = numFrames;
-    var ag = new Animated_GIF({
-      workerPath: './lib/Animated_GIF/quantizer.js'
-    });
-    ag.setSize(canvas.width, canvas.height);
-    ag.setDelay(interval);
+		var pendingFrames = numFrames;
+		var ag = new Animated_GIF({
+			workerPath: './lib/Animated_GIF/quantizer.js'
+		});
+		ag.setSize(canvas.width, canvas.height);
+		ag.setDelay(interval);
 
-    captureFrame();
+		captureFrame();
 
-    function captureFrame() {
-      ag.addFrame(videoElement);
-      pendingFrames--;
+		function captureFrame() {
+			ag.addFrame(videoElement);
+			pendingFrames--;
 
-      if (pendingFrames > 0) {
-        setTimeout(captureFrame, interval * 1000); // timeouts are in milliseconds
-      } else {
-        ag.getBase64GIF(function(image) {
-          var img = document.createElement('img');
-          img.setAttribute('id', 'target')
-          img.src = image;
+			if (pendingFrames > 0) {
+				setTimeout(captureFrame, interval * 1000); // timeouts are in milliseconds
+			} else {
+				ag.getBase64GIF(function(image) {
+					var img = document.createElement('img');
+					img.setAttribute('id', 'target')
+					img.src = image;
 
-          document.querySelector('#target_box').appendChild(img);
-          callback(image);
-        });
-      }
-    }
+					document.querySelector('#target_box').appendChild(img);
+					callback(image);
+				});
+			}
+		}
 
-  };
+	};
 }
 },{"./Animated_GIF/Animated_GIF.js":1}],6:[function(require,module,exports){
 // Browser Request
@@ -1666,203 +1666,203 @@ function b64_enc (data) {
 var saveAs = saveAs
   || (navigator.msSaveOrOpenBlob && navigator.msSaveOrOpenBlob.bind(navigator))
   || (function(view) {
-  "use strict";
-  var
-      doc = view.document
-      // only get URL when necessary in case BlobBuilder.js hasn't overridden it yet
-    , get_URL = function() {
-      return view.URL || view.webkitURL || view;
-    }
-    , URL = view.URL || view.webkitURL || view
-    , save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
-    , can_use_save_link =  !view.externalHost && "download" in save_link
-    , click = function(node) {
-      var event = doc.createEvent("MouseEvents");
-      event.initMouseEvent(
-        "click", true, false, view, 0, 0, 0, 0, 0
-        , false, false, false, false, 0, null
-      );
-      node.dispatchEvent(event);
-    }
-    , webkit_req_fs = view.webkitRequestFileSystem
-    , req_fs = view.requestFileSystem || webkit_req_fs || view.mozRequestFileSystem
-    , throw_outside = function (ex) {
-      (view.setImmediate || view.setTimeout)(function() {
-        throw ex;
-      }, 0);
-    }
-    , force_saveable_type = "application/octet-stream"
-    , fs_min_size = 0
-    , deletion_queue = []
-    , process_deletion_queue = function() {
-      var i = deletion_queue.length;
-      while (i--) {
-        var file = deletion_queue[i];
-        if (typeof file === "string") { // file is an object URL
-          URL.revokeObjectURL(file);
-        } else { // file is a File
-          file.remove();
-        }
-      }
-      deletion_queue.length = 0; // clear queue
-    }
-    , dispatch = function(filesaver, event_types, event) {
-      event_types = [].concat(event_types);
-      var i = event_types.length;
-      while (i--) {
-        var listener = filesaver["on" + event_types[i]];
-        if (typeof listener === "function") {
-          try {
-            listener.call(filesaver, event || filesaver);
-          } catch (ex) {
-            throw_outside(ex);
-          }
-        }
-      }
-    }
-    , FileSaver = function(blob, name) {
-      // First try a.download, then web filesystem, then object URLs
-      var
-          filesaver = this
-        , type = blob.type
-        , blob_changed = false
-        , object_url
-        , target_view
-        , get_object_url = function() {
-          var object_url = get_URL().createObjectURL(blob);
-          deletion_queue.push(object_url);
-          return object_url;
-        }
-        , dispatch_all = function() {
-          dispatch(filesaver, "writestart progress write writeend".split(" "));
-        }
-        // on any filesys errors revert to saving with object URLs
-        , fs_error = function() {
-          // don't create more object URLs than needed
-          if (blob_changed || !object_url) {
-            object_url = get_object_url(blob);
-          }
-          if (target_view) {
-            target_view.location.href = object_url;
-          } else {
+	"use strict";
+	var
+		  doc = view.document
+		  // only get URL when necessary in case BlobBuilder.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
+		}
+		, URL = view.URL || view.webkitURL || view
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link =  !view.externalHost && "download" in save_link
+		, click = function(node) {
+			var event = doc.createEvent("MouseEvents");
+			event.initMouseEvent(
+				"click", true, false, view, 0, 0, 0, 0, 0
+				, false, false, false, false, 0, null
+			);
+			node.dispatchEvent(event);
+		}
+		, webkit_req_fs = view.webkitRequestFileSystem
+		, req_fs = view.requestFileSystem || webkit_req_fs || view.mozRequestFileSystem
+		, throw_outside = function (ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
+		}
+		, force_saveable_type = "application/octet-stream"
+		, fs_min_size = 0
+		, deletion_queue = []
+		, process_deletion_queue = function() {
+			var i = deletion_queue.length;
+			while (i--) {
+				var file = deletion_queue[i];
+				if (typeof file === "string") { // file is an object URL
+					URL.revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
+				}
+			}
+			deletion_queue.length = 0; // clear queue
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
+					}
+				}
+			}
+		}
+		, FileSaver = function(blob, name) {
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, blob_changed = false
+				, object_url
+				, target_view
+				, get_object_url = function() {
+					var object_url = get_URL().createObjectURL(blob);
+					deletion_queue.push(object_url);
+					return object_url;
+				}
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					// don't create more object URLs than needed
+					if (blob_changed || !object_url) {
+						object_url = get_object_url(blob);
+					}
+					if (target_view) {
+						target_view.location.href = object_url;
+					} else {
                         window.open(object_url, "_blank");
                     }
-          filesaver.readyState = filesaver.DONE;
-          dispatch_all();
-        }
-        , abortable = function(func) {
-          return function() {
-            if (filesaver.readyState !== filesaver.DONE) {
-              return func.apply(this, arguments);
-            }
-          };
-        }
-        , create_if_not_found = {create: true, exclusive: false}
-        , slice
-      ;
-      filesaver.readyState = filesaver.INIT;
-      if (!name) {
-        name = "download";
-      }
-      if (can_use_save_link) {
-        object_url = get_object_url(blob);
-        save_link.href = object_url;
-        save_link.download = name;
-        click(save_link);
-        filesaver.readyState = filesaver.DONE;
-        dispatch_all();
-        return;
-      }
-      // Object and web filesystem URLs have a problem saving in Google Chrome when
-      // viewed in a tab, so I force save with application/octet-stream
-      // http://code.google.com/p/chromium/issues/detail?id=91158
-      if (view.chrome && type && type !== force_saveable_type) {
-        slice = blob.slice || blob.webkitSlice;
-        blob = slice.call(blob, 0, blob.size, force_saveable_type);
-        blob_changed = true;
-      }
-      // Since I can't be sure that the guessed media type will trigger a download
-      // in WebKit, I append .download to the filename.
-      // https://bugs.webkit.org/show_bug.cgi?id=65440
-      if (webkit_req_fs && name !== "download") {
-        name += ".download";
-      }
-      if (type === force_saveable_type || webkit_req_fs) {
-        target_view = view;
-      }
-      if (!req_fs) {
-        fs_error();
-        return;
-      }
-      fs_min_size += blob.size;
-      req_fs(view.TEMPORARY, fs_min_size, abortable(function(fs) {
-        fs.root.getDirectory("saved", create_if_not_found, abortable(function(dir) {
-          var save = function() {
-            dir.getFile(name, create_if_not_found, abortable(function(file) {
-              file.createWriter(abortable(function(writer) {
-                writer.onwriteend = function(event) {
-                  target_view.location.href = file.toURL();
-                  deletion_queue.push(file);
-                  filesaver.readyState = filesaver.DONE;
-                  dispatch(filesaver, "writeend", event);
-                };
-                writer.onerror = function() {
-                  var error = writer.error;
-                  if (error.code !== error.ABORT_ERR) {
-                    fs_error();
-                  }
-                };
-                "writestart progress write abort".split(" ").forEach(function(event) {
-                  writer["on" + event] = filesaver["on" + event];
-                });
-                writer.write(blob);
-                filesaver.abort = function() {
-                  writer.abort();
-                  filesaver.readyState = filesaver.DONE;
-                };
-                filesaver.readyState = filesaver.WRITING;
-              }), fs_error);
-            }), fs_error);
-          };
-          dir.getFile(name, {create: false}, abortable(function(file) {
-            // delete file if it already exists
-            file.remove();
-            save();
-          }), abortable(function(ex) {
-            if (ex.code === ex.NOT_FOUND_ERR) {
-              save();
-            } else {
-              fs_error();
-            }
-          }));
-        }), fs_error);
-      }), fs_error);
-    }
-    , FS_proto = FileSaver.prototype
-    , saveAs = function(blob, name) {
-      return new FileSaver(blob, name);
-    }
-  ;
-  FS_proto.abort = function() {
-    var filesaver = this;
-    filesaver.readyState = filesaver.DONE;
-    dispatch(filesaver, "abort");
-  };
-  FS_proto.readyState = FS_proto.INIT = 0;
-  FS_proto.WRITING = 1;
-  FS_proto.DONE = 2;
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+				}
+				, abortable = function(func) {
+					return function() {
+						if (filesaver.readyState !== filesaver.DONE) {
+							return func.apply(this, arguments);
+						}
+					};
+				}
+				, create_if_not_found = {create: true, exclusive: false}
+				, slice
+			;
+			filesaver.readyState = filesaver.INIT;
+			if (!name) {
+				name = "download";
+			}
+			if (can_use_save_link) {
+				object_url = get_object_url(blob);
+				save_link.href = object_url;
+				save_link.download = name;
+				click(save_link);
+				filesaver.readyState = filesaver.DONE;
+				dispatch_all();
+				return;
+			}
+			// Object and web filesystem URLs have a problem saving in Google Chrome when
+			// viewed in a tab, so I force save with application/octet-stream
+			// http://code.google.com/p/chromium/issues/detail?id=91158
+			if (view.chrome && type && type !== force_saveable_type) {
+				slice = blob.slice || blob.webkitSlice;
+				blob = slice.call(blob, 0, blob.size, force_saveable_type);
+				blob_changed = true;
+			}
+			// Since I can't be sure that the guessed media type will trigger a download
+			// in WebKit, I append .download to the filename.
+			// https://bugs.webkit.org/show_bug.cgi?id=65440
+			if (webkit_req_fs && name !== "download") {
+				name += ".download";
+			}
+			if (type === force_saveable_type || webkit_req_fs) {
+				target_view = view;
+			}
+			if (!req_fs) {
+				fs_error();
+				return;
+			}
+			fs_min_size += blob.size;
+			req_fs(view.TEMPORARY, fs_min_size, abortable(function(fs) {
+				fs.root.getDirectory("saved", create_if_not_found, abortable(function(dir) {
+					var save = function() {
+						dir.getFile(name, create_if_not_found, abortable(function(file) {
+							file.createWriter(abortable(function(writer) {
+								writer.onwriteend = function(event) {
+									target_view.location.href = file.toURL();
+									deletion_queue.push(file);
+									filesaver.readyState = filesaver.DONE;
+									dispatch(filesaver, "writeend", event);
+								};
+								writer.onerror = function() {
+									var error = writer.error;
+									if (error.code !== error.ABORT_ERR) {
+										fs_error();
+									}
+								};
+								"writestart progress write abort".split(" ").forEach(function(event) {
+									writer["on" + event] = filesaver["on" + event];
+								});
+								writer.write(blob);
+								filesaver.abort = function() {
+									writer.abort();
+									filesaver.readyState = filesaver.DONE;
+								};
+								filesaver.readyState = filesaver.WRITING;
+							}), fs_error);
+						}), fs_error);
+					};
+					dir.getFile(name, {create: false}, abortable(function(file) {
+						// delete file if it already exists
+						file.remove();
+						save();
+					}), abortable(function(ex) {
+						if (ex.code === ex.NOT_FOUND_ERR) {
+							save();
+						} else {
+							fs_error();
+						}
+					}));
+				}), fs_error);
+			}), fs_error);
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name) {
+			return new FileSaver(blob, name);
+		}
+	;
+	FS_proto.abort = function() {
+		var filesaver = this;
+		filesaver.readyState = filesaver.DONE;
+		dispatch(filesaver, "abort");
+	};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
 
-  FS_proto.error =
-  FS_proto.onwritestart =
-  FS_proto.onprogress =
-  FS_proto.onwrite =
-  FS_proto.onabort =
-  FS_proto.onerror =
-  FS_proto.onwriteend =
-    null;
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
 
-  view.addEventListener("unload", process_deletion_queue, false);
-  return saveAs;
+	view.addEventListener("unload", process_deletion_queue, false);
+	return saveAs;
 }(self));
 
 if (typeof module !== 'undefined') module.exports = saveAs;
