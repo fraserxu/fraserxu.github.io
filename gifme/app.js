@@ -1153,14 +1153,12 @@ upload_button.addEventListener('click', function() {
   console.log(imgUrl)
   var imgUrl_client = '76e5943d38e8f8e';
   // var req = hq.post('https://api.imgur.com/3/image');
-  var req = hq.post('https://api.imgur.com/3/image', {
-    image: imgUrl.split(',')[1] 
-  });
+  var req = hq.post('https://api.imgur.com/3/image');
   req.setHeader('Authorization', 'Client-ID ' + imgUrl_client);
   req.pipe(concat(function (err, data) {
     console.log('data=' + data);
   }));
-  req.end();
+  req.end({ image: imgUrl.split(',')[1]});
 })
 
 
