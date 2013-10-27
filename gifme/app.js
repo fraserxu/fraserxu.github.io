@@ -1168,15 +1168,9 @@ upload_button.addEventListener('click', function() {
   }
   request(options, function(error, res, body) {
     var data = JSON.parse(body).data;
-    alert('You image url is ', data.link)
+    // console.log(data.link)
+    alert(data.link)
   })
-  // var req = hq.post('https://api.imgur.com/3/image');
-  // var req = hq.post('https://api.imgur.com/3/image');
-  // req.setHeader('Authorization', 'Client-ID ' + imgUrl_client);
-  // req.pipe(concat(function (err, data) {
- //    console.log('data=' + data);
-  // }));
-  // req.end({ image: imgUrl.split(',')[1]});
 })
 
 
