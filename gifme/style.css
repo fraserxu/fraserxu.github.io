@@ -1,19 +1,34 @@
 .container {
-	width: 800px;
+	width: 700px;
 	margin: 20px auto;
 }
 
-.box,
-.header {
+.box {
+	margin: 0px auto;
+}
+
+.center {
+	text-align: center;
+}
+
+.header h3 {
 	text-align: center;
 }
 
 .header>ul {
-	text-align: left;
+	margin: 0px auto;
 	list-style: none;
-	margin-left:20%;
+	margin-left:10%;
 }
 
 #filename {
 	text-align: right;
+}
+
+.footer ul {
+	list-style: none;
+}
+.footer ul li {
+	display: inline;
+	font-weight: bold;
 }

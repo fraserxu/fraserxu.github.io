@@ -1176,7 +1176,6 @@ upload_button.addEventListener('click', function() {
     link_box.setAttribute('autofocus', true);
     link_box.value = data.link;
 
-
     document.querySelector('#share_link').appendChild(link_box);
   })
 });
