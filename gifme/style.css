@@ -1,0 +1,13 @@
+.container {
+	width: 800px;
+	margin: 20px auto;
+}
+
+.box,
+.header {
+	text-align: center;
+}
+
+#filename {
+	text-align: right;
+}
