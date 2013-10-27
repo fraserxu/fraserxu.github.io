@@ -1149,7 +1149,7 @@ save_button.addEventListener('click', function() {
 upload_button.addEventListener('click', function() {
   upload_button.disabled = true;
   var button_text = upload_button.innerHTML;
-  upload_button.innerHTML = 'uploding...';
+  upload_button.innerHTML = 'uploading...';
 
   var imgUrl = document.querySelector('#target').getAttribute('src');
   var img_file = imgUrl.split(',')[1];
