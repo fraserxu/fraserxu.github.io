@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang='en'>
+<html xmlns:wb=“http://open.weibo.com/wb”>
 <head>
     <meta charset='utf-8'>
     <title>gifme</title>
-    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Oxygen:400,300,700)">
     <link rel='stylesheet' href='style.css'>
+    <script src="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script>
 </head>
 <body>
     <div id="header">
         <div id="header-container">
             <div id="header-content">
                 <div id="header-title">gifme</div>
-                <div id="header-subtitle">The easiest way to create and share gif in the browser..</div>
+                <div id="header-subtitle">最简单的gif图片生成器</div>
                 <div id="header-social">
                     <div class="social-button">
                         <iframe src="http://ghbtns.com/github-btn.html?user=fraserxu&amp;repo=gifme&amp;type=watch&amp;count=true" allowtransparency="true" frameborder="0" scrolling="0" width="107" height="20"></iframe>
@@ -20,8 +20,7 @@
                         <iframe src="http://ghbtns.com/github-btn.html?user=fraserxu&amp;repo=gifme&amp;type=fork&amp;count=true" allowtransparency="true" frameborder="0" scrolling="0" width="107" height="20"></iframe>
                     </div>
                     <div class="social-button">
-                        <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://xvfeng.me/gifme" data-text="A tool to make a gif in the browser for sharing" data-via="xvfeng" data-hashtags="gifme">Tweet</a>
-                        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                        <wb:share-button appkey="2Tzp2m" addition="number" type="button" ralateUid="1720551122" default_text="最简单的浏览器gif生成器"></wb:share-button>
                     </div>
                 </div>
             </div>
@@ -30,15 +29,15 @@
 
     <section id="sub-header">
         <ul>
-            <li>Step1: Allow the browser to use you camera by clicking the <b>allow</b> button;</li>
-            <li>Step2: Click <b>capture</b> to make a gif image;</li>
-            <li>Step3:
+            <li>步骤一: 点击浏览器的 <b>允许</b> 按钮;</li>
+            <li>步骤二: 单击 <b>拍摄</b> 使用摄像头拍摄照片;</li>
+            <li>步骤三:
                 <ul class='sublist'>
-                    <li>Click <b>save</b> to save the image to local;</li>
-                    <li>Clcik <b>upload</b> to upload image to imgur and share with others;</li>
+                    <li>点击 <b>保存</b> 按钮保存图片至本地;</li>
+                    <li>点击 <b>上传</b> 上传至<a href='http://imgur.com/'>imgur</a>生成链接;</li>
                 </ul>
             </li>
-            <li>Step4: Have fun!</li>
+            <li>步骤四: 与好友分享!</li>
         </ul>
     </section>
 
@@ -46,7 +45,7 @@
         <div class='box' data-slidr="one">
             <section id='webcam'>
             </section>  
-            <button id='capture'>capture</button>  
+            <button id='capture'>拍摄</button>  
         </div>
 
         <div class='box' data-slidr="two">
@@ -57,28 +56,28 @@
         <div class='box' data-slidr="three">
             <div class="field">
                 <label for="filename">
-                    Filename:
+                    文件名:
                     <input type="text" id="filename" placeholder="gifme" />
                     .gif
                 </label>
-                <button id='saveAs' disabled>Save</button>    
+                <button id='saveAs' disabled>保存</button>    
             </div>
             
             <div class="field">
-                or: <button id='upload' disabled>Upload to imgur</button>
+                或者: <button id='upload' disabled>上传至imgur</button>
                 <span id='share_link'></span>        
             </div>
         </div>
     </div>  
 
     <section id="footer">
-        <p>Don't hesitate to share it with your friends and <a href='http://xvfeng.me'>me</a> on:</p>
+        <p>赶紧和你的好友或者 <a href='http://xvfeng.me'>我</a> 分享吧:</p>
         <ul>
             <li>
-                twitter <a href='https://twitter.com/xvfeng'>@xvfeng</a>       
+                推特 <a href='https://twitter.com/xvfeng'>@xvfeng</a>       
             </li>
             <li>
-              weibo <a href='http://weibo.com/xvfeng123'>@fraserxv</a>  
+                新浪微博 <a href='http://weibo.com/xvfeng123'>@fraserxv</a>  
             </li>
         </ul>
     </section> 
