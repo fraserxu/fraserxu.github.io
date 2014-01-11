@@ -1,5 +1,5 @@
-;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var GifWriter = require('./omggif.js');
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var GifWriter = require('./omggif');
 
 // A library/utility for generating GIF files
 // Uses Dean McNamee's omggif library
@@ -19,10 +19,10 @@ function Animated_GIF(options) {
 
     options = options || {};
     numWorkers = options.numWorkers || 2;
-    workerPath = options.workerPath || 'src/quantizer.js'; // XXX hardcoded path
+    // workerPath = options.workerPath || 'src/quantizer.js'; // XXX hardcoded path
 
     for(var i = 0; i < numWorkers; i++) {
-        var w = new Worker(workerPath);
+        var w = new Worker(window.URL.createObjectURL(new Blob([';(function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module \'"+n+"\'")}var u=t[n]={exports:{}};e[n][0].call(u.exports,function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){\n(function(){var NeuQuant = require(\'./NeuQuant.js\');\n\nfunction run(data) {\n    var length = Object.keys(data).length;\n    var numberPixels = length / 4; // 4 components = rgba\n    var sampleInterval = 10;\n    var bgrPixels = [];\n    var offset = 0;\n    var i, r, g, b;\n    var pixels = new Uint8Array(numberPixels); // it\'s an indexed image so 1 byte per pixel is enough\n\n    // extract RGB values into BGR for the quantizer\n    while(offset < length) {\n        r = data[offset++];\n        g = data[offset++];\n        b = data[offset++];\n        bgrPixels.push(b);\n        bgrPixels.push(g);\n        bgrPixels.push(r);\n\n        offset++;\n    }\n\n    var nq = new NeuQuant(bgrPixels, bgrPixels.length, sampleInterval);\n\n    var paletteBGR = nq.process(); // create reduced palette\n    var palette = [];\n\n    for(i = 0; i < paletteBGR.length; i+=3) {\n        b = paletteBGR[i];\n        g = paletteBGR[i+1];\n        r = paletteBGR[i+2];\n        palette.push(r << 16 | g << 8 | b);\n    }\n    var paletteArray = new Uint32Array(palette);\n\n    var k = 0;\n    for (var j = 0; j < numberPixels; j++) {\n        b = bgrPixels[k++];\n        g = bgrPixels[k++];\n        r = bgrPixels[k++];\n        var index = nq.map(b, g, r);\n        pixels[j] = index;\n    }\n\n    return ({\n        pixels: pixels,\n        palette: paletteArray\n    });\n}\n\nself.onmessage = function(ev) {\n    var data = ev.data;\n    var response = run(data);\n    postMessage(response);\n};\n\n})()\n},{"./NeuQuant.js":2}],2:[function(require,module,exports){\n(function(){/*\n* NeuQuant Neural-Net Quantization Algorithm\n* ------------------------------------------\n*\n* Copyright (c) 1994 Anthony Dekker\n*\n* NEUQUANT Neural-Net quantization algorithm by Anthony Dekker, 1994. See\n* "Kohonen neural networks for optimal colour quantization" in "Network:\n* Computation in Neural Systems" Vol. 5 (1994) pp 351-367. for a discussion of\n* the algorithm.\n*\n* Any party obtaining a copy of these files from the author, directly or\n* indirectly, is granted, free of charge, a full and unrestricted irrevocable,\n* world-wide, paid up, royalty-free, nonexclusive right and license to deal in\n* this software and documentation files (the "Software"), including without\n* limitation the rights to use, copy, modify, merge, publish, distribute,\n* sublicense, and/or sell copies of the Software, and to permit persons who\n* receive copies from any such party to do so, with the only requirement being\n* that this copyright notice remain intact.\n*/\n\n/*\n* This class handles Neural-Net quantization algorithm\n* @author Kevin Weiner (original Java version - kweiner@fmsware.com)\n* @author Thibault Imbert (AS3 version - bytearray.org)\n* @version 0.1 AS3 implementation\n* @version 0.2 JS->AS3 "translation" by antimatter15\n* @version 0.3 JS clean up + using modern JS idioms by sole - http://soledadpenades.com\n* Also implement fix in color conversion described at http://stackoverflow.com/questions/16371712/neuquant-js-javascript-color-quantization-hidden-bug-in-js-conversion\n*/\n\nfunction NeuQuant() {\n\n    var netsize = 256; // number of colours used\n\n    // four primes near 500 - assume no image has a length so large\n    // that it is divisible by all four primes\n    var prime1 = 499;\n    var prime2 = 491;\n    var prime3 = 487;\n    var prime4 = 503;\n\n    // minimum size for input image\n    var minpicturebytes = (3 * prime4);\n\n    // Network Definitions\n\n    var maxnetpos = (netsize - 1);\n    var netbiasshift = 4; // bias for colour values\n    var ncycles = 100; // no. of learning cycles\n\n    // defs for freq and bias\n    var intbiasshift = 16; // bias for fractions\n    var intbias = (1 << intbiasshift);\n    var gammashift = 10; // gamma = 1024\n    var gamma = (1 << gammashift);\n    var betashift = 10;\n    var beta = (intbias >> betashift); // beta = 1/1024\n    var betagamma = (intbias << (gammashift - betashift));\n\n    // defs for decreasing radius factor\n    // For 256 colors, radius starts at 32.0 biased by 6 bits\n    // and decreases by a factor of 1/30 each cycle\n    var initrad = (netsize >> 3);\n    var radiusbiasshift = 6;\n    var radiusbias = (1 << radiusbiasshift);\n    var initradius = (initrad * radiusbias);\n    var radiusdec = 30;\n\n    // defs for decreasing alpha factor\n    // Alpha starts at 1.0 biased by 10 bits\n    var alphabiasshift = 10;\n    var initalpha = (1 << alphabiasshift);\n    var alphadec;\n\n    // radbias and alpharadbias used for radpower calculation\n    var radbiasshift = 8;\n    var radbias = (1 << radbiasshift);\n    var alpharadbshift = (alphabiasshift + radbiasshift);\n    var alpharadbias = (1 << alpharadbshift);\n\n\n    // Input image\n    var thepicture;\n    // Height * Width * 3\n    var lengthcount;\n    // Sampling factor 1..30\n    var samplefac;\n\n    // The network itself\n    var network;\n    var netindex = [];\n\n    // for network lookup - really 256\n    var bias = [];\n\n    // bias and freq arrays for learning\n    var freq = [];\n    var radpower = [];\n\n    function NeuQuantConstructor(thepic, len, sample) {\n\n        var i;\n        var p;\n\n        thepicture = thepic;\n        lengthcount = len;\n        samplefac = sample;\n\n        network = new Array(netsize);\n\n        for (i = 0; i < netsize; i++) {\n            network[i] = new Array(4);\n            p = network[i];\n            p[0] = p[1] = p[2] = ((i << (netbiasshift + 8)) / netsize) | 0;\n            freq[i] = (intbias / netsize) | 0; // 1 / netsize\n            bias[i] = 0;\n        }\n\n    }\n\n    function colorMap() {\n        var map = [];\n        var index = new Array(netsize);\n        for (var i = 0; i < netsize; i++)\n            index[network[i][3]] = i;\n        var k = 0;\n        for (var l = 0; l < netsize; l++) {\n            var j = index[l];\n            map[k++] = (network[j][0]);\n            map[k++] = (network[j][1]);\n            map[k++] = (network[j][2]);\n        }\n        return map;\n    }\n\n    // Insertion sort of network and building of netindex[0..255]\n    // (to do after unbias)\n    function inxbuild() {\n        var i;\n        var j;\n        var smallpos;\n        var smallval;\n        var p;\n        var q;\n        var previouscol;\n        var startpos;\n\n        previouscol = 0;\n        startpos = 0;\n\n        for (i = 0; i < netsize; i++)\n        {\n\n            p = network[i];\n            smallpos = i;\n            smallval = p[1]; // index on g\n            // find smallest in i..netsize-1\n            for (j = i + 1; j < netsize; j++) {\n\n                q = network[j];\n\n                if (q[1] < smallval) { // index on g\n                    smallpos = j;\n                    smallval = q[1]; // index on g\n                }\n            }\n\n            q = network[smallpos];\n\n            // swap p (i) and q (smallpos) entries\n            if (i != smallpos) {\n                j = q[0];\n                q[0] = p[0];\n                p[0] = j;\n                j = q[1];\n                q[1] = p[1];\n                p[1] = j;\n                j = q[2];\n                q[2] = p[2];\n                p[2] = j;\n                j = q[3];\n                q[3] = p[3];\n                p[3] = j;\n            }\n\n            // smallval entry is now in position i\n            if (smallval != previouscol) {\n\n                netindex[previouscol] = (startpos + i) >> 1;\n\n                for (j = previouscol + 1; j < smallval; j++) {\n                    netindex[j] = i;\n                }\n\n                previouscol = smallval;\n                startpos = i;\n\n            }\n\n        }\n\n        netindex[previouscol] = (startpos + maxnetpos) >> 1;\n        for (j = previouscol + 1; j < 256; j++) {\n            netindex[j] = maxnetpos; // really 256\n        }\n\n    }\n\n\n    // Main Learning Loop\n\n    function learn() {\n        var i;\n        var j;\n        var b;\n        var g;\n        var r;\n        var radius;\n        var rad;\n        var alpha;\n        var step;\n        var delta;\n        var samplepixels;\n        var p;\n        var pix;\n        var lim;\n\n        if (lengthcount < minpicturebytes) {\n            samplefac = 1;\n        }\n\n        alphadec = 30 + ((samplefac - 1) / 3);\n        p = thepicture;\n        pix = 0;\n        lim = lengthcount;\n        samplepixels = lengthcount / (3 * samplefac);\n        delta = (samplepixels / ncycles) | 0;\n        alpha = initalpha;\n        radius = initradius;\n\n        rad = radius >> radiusbiasshift;\n        if (rad <= 1) {\n            rad = 0;\n        }\n\n        for (i = 0; i < rad; i++) {\n            radpower[i] = alpha * (((rad * rad - i * i) * radbias) / (rad * rad));\n        }\n\n\n        if (lengthcount < minpicturebytes) {\n            step = 3;\n        } else if ((lengthcount % prime1) !== 0) {\n            step = 3 * prime1;\n        } else {\n\n            if ((lengthcount % prime2) !== 0) {\n                step = 3 * prime2;\n            } else {\n                if ((lengthcount % prime3) !== 0) {\n                    step = 3 * prime3;\n                } else {\n                    step = 3 * prime4;\n                }\n            }\n\n        }\n\n        i = 0;\n\n        while (i < samplepixels) {\n\n            b = (p[pix + 0] & 0xff) << netbiasshift;\n            g = (p[pix + 1] & 0xff) << netbiasshift;\n            r = (p[pix + 2] & 0xff) << netbiasshift;\n            j = contest(b, g, r);\n\n            altersingle(alpha, j, b, g, r);\n\n            if (rad !== 0) {\n                // Alter neighbours\n                alterneigh(rad, j, b, g, r);\n            }\n\n            pix += step;\n\n            if (pix >= lim) {\n                pix -= lengthcount;\n            }\n\n            i++;\n\n            if (delta === 0) {\n                delta = 1;\n            }\n\n            if (i % delta === 0) {\n                alpha -= alpha / alphadec;\n                radius -= radius / radiusdec;\n                rad = radius >> radiusbiasshift;\n\n                if (rad <= 1) {\n                    rad = 0;\n                }\n\n                for (j = 0; j < rad; j++) {\n                    radpower[j] = alpha * (((rad * rad - j * j) * radbias) / (rad * rad));\n                }\n\n            }\n\n        }\n\n    }\n\n    // Search for BGR values 0..255 (after net is unbiased) and return colour index\n    function map(b, g, r) {\n        var i;\n        var j;\n        var dist;\n        var a;\n        var bestd;\n        var p;\n        var best;\n\n        // Biggest possible distance is 256 * 3\n        bestd = 1000;\n        best = -1;\n        i = netindex[g]; // index on g\n        j = i - 1; // start at netindex[g] and work outwards\n\n        while ((i < netsize) || (j >= 0)) {\n\n            if (i < netsize) {\n\n                p = network[i];\n\n                dist = p[1] - g; // inx key\n\n                if (dist >= bestd) {\n                    i = netsize; // stop iter\n                } else {\n\n                    i++;\n\n                    if (dist < 0) {\n                        dist = -dist;\n                    }\n\n                    a = p[0] - b;\n\n                    if (a < 0) {\n                        a = -a;\n                    }\n\n                    dist += a;\n\n                    if (dist < bestd) {\n                        a = p[2] - r;\n\n                        if (a < 0) {\n                            a = -a;\n                        }\n\n                        dist += a;\n\n                        if (dist < bestd) {\n                            bestd = dist;\n                            best = p[3];\n                        }\n                    }\n\n                }\n\n            }\n\n            if (j >= 0) {\n\n                p = network[j];\n\n                dist = g - p[1]; // inx key - reverse dif\n\n                if (dist >= bestd) {\n                    j = -1; // stop iter\n                } else {\n\n                    j--;\n                    if (dist < 0) {\n                        dist = -dist;\n                    }\n                    a = p[0] - b;\n                    if (a < 0) {\n                        a = -a;\n                    }\n                    dist += a;\n\n                    if (dist < bestd) {\n                        a = p[2] - r;\n                        if (a < 0) {\n                            a = -a;\n                        }\n                        dist += a;\n                        if (dist < bestd) {\n                            bestd = dist;\n                            best = p[3];\n                        }\n                    }\n\n                }\n\n            }\n\n        }\n\n        return (best);\n\n    }\n\n    function process() {\n        learn();\n        unbiasnet();\n        inxbuild();\n        return colorMap();\n    }\n\n    // Unbias network to give byte values 0..255 and record position i\n    // to prepare for sort\n    function unbiasnet() {\n        var i;\n        var j;\n\n        for (i = 0; i < netsize; i++) {\n            network[i][0] >>= netbiasshift;\n            network[i][1] >>= netbiasshift;\n            network[i][2] >>= netbiasshift;\n            network[i][3] = i; // record colour no\n        }\n    }\n\n    // Move adjacent neurons by precomputed alpha*(1-((i-j)^2/[r]^2))\n    // in radpower[|i-j|]\n    function alterneigh(rad, i, b, g, r) {\n\n        var j;\n        var k;\n        var lo;\n        var hi;\n        var a;\n        var m;\n\n        var p;\n\n        lo = i - rad;\n        if (lo < -1) {\n            lo = -1;\n        }\n\n        hi = i + rad;\n\n        if (hi > netsize) {\n            hi = netsize;\n        }\n\n        j = i + 1;\n        k = i - 1;\n        m = 1;\n\n        while ((j < hi) || (k > lo)) {\n\n            a = radpower[m++];\n\n            if (j < hi) {\n\n                p = network[j++];\n\n                try {\n\n                    p[0] -= ((a * (p[0] - b)) / alpharadbias) | 0;\n                    p[1] -= ((a * (p[1] - g)) / alpharadbias) | 0;\n                    p[2] -= ((a * (p[2] - r)) / alpharadbias) | 0;\n\n                } catch (e) {}\n\n            }\n\n            if (k > lo) {\n\n                p = network[k--];\n\n                try {\n\n                    p[0] -= ((a * (p[0] - b)) / alpharadbias) | 0;\n                    p[1] -= ((a * (p[1] - g)) / alpharadbias) | 0;\n                    p[2] -= ((a * (p[2] - r)) / alpharadbias) | 0;\n\n                } catch (e) {}\n\n            }\n\n        }\n\n    }\n\n\n    // Move neuron i towards biased (b,g,r) by factor alpha\n    function altersingle(alpha, i, b, g, r) {\n\n        // alter hit neuron\n        var n = network[i];\n        var alphaMult = alpha / initalpha;\n        n[0] -= ((alphaMult * (n[0] - b))) | 0;\n        n[1] -= ((alphaMult * (n[1] - g))) | 0;\n        n[2] -= ((alphaMult * (n[2] - r))) | 0;\n\n    }\n\n    // Search for biased BGR values\n    function contest(b, g, r) {\n\n        // finds closest neuron (min dist) and updates freq\n        // finds best neuron (min dist-bias) and returns position\n        // for frequently chosen neurons, freq[i] is high and bias[i] is negative\n        // bias[i] = gamma*((1/netsize)-freq[i])\n\n        var i;\n        var dist;\n        var a;\n        var biasdist;\n        var betafreq;\n        var bestpos;\n        var bestbiaspos;\n        var bestd;\n        var bestbiasd;\n        var n;\n\n        bestd = ~(1 << 31);\n        bestbiasd = bestd;\n        bestpos = -1;\n        bestbiaspos = bestpos;\n\n        for (i = 0; i < netsize; i++) {\n\n            n = network[i];\n            dist = n[0] - b;\n\n            if (dist < 0) {\n                dist = -dist;\n            }\n\n            a = n[1] - g;\n\n            if (a < 0) {\n                a = -a;\n            }\n\n            dist += a;\n\n            a = n[2] - r;\n\n            if (a < 0) {\n                a = -a;\n            }\n\n            dist += a;\n\n            if (dist < bestd) {\n                bestd = dist;\n                bestpos = i;\n            }\n\n            biasdist = dist - ((bias[i]) >> (intbiasshift - netbiasshift));\n\n            if (biasdist < bestbiasd) {\n                bestbiasd = biasdist;\n                bestbiaspos = i;\n            }\n\n            betafreq = (freq[i] >> betashift);\n            freq[i] -= betafreq;\n            bias[i] += (betafreq << gammashift);\n\n        }\n\n        freq[bestpos] += beta;\n        bias[bestpos] -= betagamma;\n        return (bestbiaspos);\n\n    }\n\n    NeuQuantConstructor.apply(this, arguments);\n\n    var exports = {};\n    exports.map = map;\n    exports.process = process;\n\n    return exports;\n}\n\nmodule.exports = NeuQuant;\n})()\n},{}]},{},[1])\n;'],{type:"text/javascript"})));
         workers.push(w);
         availableWorkers.push(w);
     }
@@ -78,7 +78,7 @@ function Animated_GIF(options) {
         var worker;
 
         frame = frames[position];
-        
+
         if(frame.beingProcessed || frame.done) {
             console.error('Frame already being processed or done!', frame.position);
             onFrameFinished();
@@ -86,7 +86,7 @@ function Animated_GIF(options) {
         }
 
         frame.beingProcessed = true;
-        
+
         worker = getWorker();
 
         worker.onmessage = function(ev) {
@@ -106,7 +106,7 @@ function Animated_GIF(options) {
             onFrameFinished();
         };
 
-        
+
         // TODO maybe look into transfer objects
         // for further efficiency
         var frameData = frame.data;
@@ -125,7 +125,7 @@ function Animated_GIF(options) {
                 break;
             }
         }
-        
+
         if(position >= 0) {
             processFrame(position);
         }
@@ -149,13 +149,13 @@ function Animated_GIF(options) {
         } else {
             setTimeout(processNextFrame, 1);
         }
-        
+
     }
 
     // Takes the already processed data in frames and feeds it to a new
     // GifWriter instance in order to get the binary GIF file
     function generateGIF(frames, callback) {
-        
+
         // TODO: Weird: using a simple JS array instead of a typed array,
         // the files are WAY smaller o_o. Patches/explanations welcome!
         var buffer = []; // new Uint8Array(width * height * frames.length * 5);
@@ -166,20 +166,20 @@ function Animated_GIF(options) {
         frames.forEach(function(frame) {
             onRenderProgressCallback(0.75 + 0.25 * frame.position * 1.0 / frames.length);
             gifWriter.addFrame(0, 0, width, height, frame.pixels, {
-                palette: frame.palette, 
-                delay: delay 
+                palette: frame.palette,
+                delay: delay
             });
         });
 
         gifWriter.end();
         onRenderProgressCallback(1.0);
-        
+
         frames = [];
         generatingGIF = false;
 
         callback(buffer);
     }
-    
+
     // ---
 
     this.setSize = function(w, h) {
@@ -209,7 +209,7 @@ function Animated_GIF(options) {
 
         ctx.drawImage(element, 0, 0, width, height);
         var data = ctx.getImageData(0, 0, width, height);
-        
+
         this.addFrameImageData(data.data);
     };
 
@@ -245,7 +245,7 @@ function Animated_GIF(options) {
 
 module.exports = Animated_GIF;
 
-},{"./omggif.js":2}],2:[function(require,module,exports){
+},{"./omggif":2}],2:[function(require,module,exports){
 // (c) Dean McNamee <dean@gmail.com>, 2013.
 //
 // https://github.com/deanm/omggif
@@ -1094,124 +1094,7 @@ function stopVideoStreaming() {
 	}
 }
 },{}],4:[function(require,module,exports){
-var VideoShooter = require('./videoShooter');
-var gumHelper = require('./gumhelper');
-var saveAs = require('filesaver.js');
-var request = require('browser-request');
-var qs = require('querystring');
-var slidr = require('../node_modules/slidr/slidr.js');
-var videoShooter;
-
-var imgur = {
-	api: 'https://api.imgur.com/3/image',
-	client: '76e5943d38e8f8e'
-};
-
-var s = slidr.create('slidr-div')
-	.add('h', ['one', 'two', 'three'])
-	.add('v', ['three', 'four'], 'cube')
-	.start();
-
-// buttons
-var camera_button = document.querySelector('#camera');
-var save_button = document.querySelector('#saveAs');
-var upload_button = document.querySelector('#upload');
-var capture_button = document.querySelector('#capture');
-
-// allow to use camera
-camera_button.addEventListener('click', function() {
-	if (navigator.getMedia) {
-		gumHelper.startVideoStreaming(function errorCb() {}, function successCallback(stream, videoElement, width, height) {
-			videoElement.width = width / 2;
-			videoElement.height = height / 2;
-			document.querySelector('#webcam').appendChild(videoElement);
-			videoElement.play();
-			videoShooter = new VideoShooter(videoElement);
-
-			s.slide('two');
-		});
-	} else {
-		alert('sorry, your browser does\'s support getMedia.');
-	}
-})
-
-function getScreenshot(callback, numFrames, interval) {
-	if (videoShooter) {
-		videoShooter.getShot(callback, numFrames, interval);
-	} else {
-		callback('');
-	}
-};
-
-// capture a gif
-capture_button.addEventListener('click', function() {
-	var capture_text = capture_button.innerHTML;
-	
-	capture_button.innerHTML = 'capturing...';
-	getScreenshot(function(pictureData) {
-		save_button.disabled = false;
-		upload_button.disabled = false;
-
-		capture_button.innerHTML = capture_text;
-		s.slide('three');
-	}, 10, 0.2);
-
-})
-
-// save to local
-save_button.addEventListener('click', function() {
-	var imgUrl = document.querySelector('#target').getAttribute('src');
-	var blob = dataURItoBlob(imgUrl, 'image/gif');
-	var filename = (document.querySelector('#filename').value || 'gifme') + '.gif';
-
-	saveAs(blob, filename);
-})
-
-// upload to imgur
-upload_button.addEventListener('click', function() {
-	upload_button.disabled = true;
-	var button_text = upload_button.innerHTML;
-	upload_button.innerHTML = 'uploading...';
-
-	var imgUrl = document.querySelector('#target').getAttribute('src');
-	var img_file = imgUrl.split(',')[1];
-	var options = {
-		url: imgur.api,
-		method: 'post',
-		headers: {
-			Authorization: 'Client-ID ' + imgur.client,
-			'Content-Type': 'application/x-www-form-urlencoded'
-		},
-		body: qs.stringify({
-			type: 'base64',
-			image: img_file
-		})
-	}
-	request(options, function(error, res, body) {
-		upload_button.disabled = false;
-		upload_button.innerHTML = button_text;
-		var data = JSON.parse(body).data;
-
-		// add to dom
-		var link_box = document.createElement('input');
-		link_box.setAttribute('type', 'text');
-		link_box.setAttribute('autofocus', true);
-		link_box.value = data.link;
-
-		document.querySelector('#share_link').appendChild(link_box);
-	})
-});
-
-function dataURItoBlob(dataURI, dataTYPE) {
-	var binary = atob(dataURI.split(',')[1]),
-		array = [];
-	for (var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
-	return new Blob([new Uint8Array(array)], {
-		type: dataTYPE
-	});
-}
-},{"../node_modules/slidr/slidr.js":8,"./gumhelper":3,"./videoShooter":5,"browser-request":6,"filesaver.js":7,"querystring":9}],5:[function(require,module,exports){
-var Animated_GIF = require('./Animated_GIF/Animated_GIF.js');
+var Animated_GIF = require('./Animated_GIF/Animated_GIF');
 
 module.exports = function(videoElement) {
     'use strict';
@@ -1228,7 +1111,7 @@ module.exports = function(videoElement) {
 
         var pendingFrames = numFrames;
         var ag = new Animated_GIF({
-            workerPath: './lib/Animated_GIF/quantizer.js'
+            workerPath: './Animated_GIF/quantizer.js'
         });
         ag.setSize(canvas.width, canvas.height);
         ag.setDelay(interval);
@@ -1255,7 +1138,124 @@ module.exports = function(videoElement) {
 
     };
 }
-},{"./Animated_GIF/Animated_GIF.js":1}],6:[function(require,module,exports){
+},{"./Animated_GIF/Animated_GIF":1}],5:[function(require,module,exports){
+var VideoShooter = require('./lib/videoShooter');
+var gumHelper = require('./lib/gumhelper');
+var saveAs = require('filesaver.js');
+var request = require('browser-request');
+var qs = require('querystring');
+var slidr = require('slidr/slidr.js');
+var videoShooter;
+
+var imgur = {
+    api: 'https://api.imgur.com/3/image',
+    client: '76e5943d38e8f8e'
+};
+
+var s = slidr.create('slidr-div')
+    .add('h', ['one', 'two', 'three'])
+    .add('v', ['three', 'four'], 'cube')
+    .start();
+
+// buttons
+var camera_button = document.querySelector('#camera');
+var save_button = document.querySelector('#saveAs');
+var upload_button = document.querySelector('#upload');
+var capture_button = document.querySelector('#capture');
+
+// allow to use camera
+camera_button.addEventListener('click', function() {
+    if (navigator.getMedia) {
+        gumHelper.startVideoStreaming(function errorCb() {}, function successCallback(stream, videoElement, width, height) {
+            videoElement.width = width / 2;
+            videoElement.height = height / 2;
+            document.querySelector('#webcam').appendChild(videoElement);
+            videoElement.play();
+            videoShooter = new VideoShooter(videoElement);
+
+            s.slide('two');
+        });
+    } else {
+        alert('sorry, your browser does\'s support getMedia.');
+    }
+})
+
+function getScreenshot(callback, numFrames, interval) {
+    if (videoShooter) {
+        videoShooter.getShot(callback, numFrames, interval);
+    } else {
+        callback('');
+    }
+};
+
+// capture a gif
+capture_button.addEventListener('click', function() {
+    var capture_text = capture_button.innerHTML;
+
+    capture_button.innerHTML = 'capturing...';
+    getScreenshot(function(pictureData) {
+        save_button.disabled = false;
+        upload_button.disabled = false;
+
+        capture_button.innerHTML = capture_text;
+        s.slide('three');
+    }, 10, 0.2);
+
+})
+
+// save to local
+save_button.addEventListener('click', function() {
+    var imgUrl = document.querySelector('#target').getAttribute('src');
+    var blob = dataURItoBlob(imgUrl, 'image/gif');
+    var filename = (document.querySelector('#filename').value || 'gifme') + '.gif';
+
+    saveAs(blob, filename);
+})
+
+// upload to imgur
+upload_button.addEventListener('click', function() {
+    upload_button.disabled = true;
+    var button_text = upload_button.innerHTML;
+    upload_button.innerHTML = 'uploading...';
+
+    var imgUrl = document.querySelector('#target').getAttribute('src');
+    var img_file = imgUrl.split(',')[1];
+    var options = {
+        url: imgur.api,
+        method: 'post',
+        headers: {
+            Authorization: 'Client-ID ' + imgur.client,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: qs.stringify({
+            type: 'base64',
+            image: img_file
+        })
+    }
+    request(options, function(error, res, body) {
+        upload_button.disabled = false;
+        upload_button.innerHTML = button_text;
+        var data = JSON.parse(body).data;
+
+        // add to dom
+        var link_box = document.createElement('input');
+        link_box.setAttribute('type', 'text');
+        link_box.setAttribute('autofocus', true);
+        link_box.value = data.link;
+
+        document.querySelector('#share_link').appendChild(link_box);
+    })
+});
+
+function dataURItoBlob(dataURI, dataTYPE) {
+    var binary = atob(dataURI.split(',')[1]),
+        array = [];
+    for (var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
+    return new Blob([new Uint8Array(array)], {
+        type: dataTYPE
+    });
+}
+},{"./lib/gumhelper":3,"./lib/videoShooter":4,"browser-request":6,"filesaver.js":10,"querystring":9,"slidr/slidr.js":11}],6:[function(require,module,exports){
 // Browser Request
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -1669,6 +1669,185 @@ function b64_enc (data) {
 }
 
 },{}],7:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+
+// If obj.hasOwnProperty has been overridden, then calling
+// obj.hasOwnProperty(prop) will break.
+// See: https://github.com/joyent/node/issues/1707
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+module.exports = function(qs, sep, eq, options) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  var regexp = /\+/g;
+  qs = qs.split(sep);
+
+  var maxKeys = 1000;
+  if (options && typeof options.maxKeys === 'number') {
+    maxKeys = options.maxKeys;
+  }
+
+  var len = qs.length;
+  // maxKeys <= 0 means that we should not limit keys count
+  if (maxKeys > 0 && len > maxKeys) {
+    len = maxKeys;
+  }
+
+  for (var i = 0; i < len; ++i) {
+    var x = qs[i].replace(regexp, '%20'),
+        idx = x.indexOf(eq),
+        kstr, vstr, k, v;
+
+    if (idx >= 0) {
+      kstr = x.substr(0, idx);
+      vstr = x.substr(idx + 1);
+    } else {
+      kstr = x;
+      vstr = '';
+    }
+
+    k = decodeURIComponent(kstr);
+    v = decodeURIComponent(vstr);
+
+    if (!hasOwnProperty(obj, k)) {
+      obj[k] = v;
+    } else if (isArray(obj[k])) {
+      obj[k].push(v);
+    } else {
+      obj[k] = [obj[k], v];
+    }
+  }
+
+  return obj;
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+},{}],8:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+
+var stringifyPrimitive = function(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+};
+
+module.exports = function(obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  if (obj === null) {
+    obj = undefined;
+  }
+
+  if (typeof obj === 'object') {
+    return map(objectKeys(obj), function(k) {
+      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+      if (isArray(obj[k])) {
+        return obj[k].map(function(v) {
+          return ks + encodeURIComponent(stringifyPrimitive(v));
+        }).join(sep);
+      } else {
+        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+      }
+    }).join(sep);
+
+  }
+
+  if (!name) return '';
+  return encodeURIComponent(stringifyPrimitive(name)) + eq +
+         encodeURIComponent(stringifyPrimitive(obj));
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+function map (xs, f) {
+  if (xs.map) return xs.map(f);
+  var res = [];
+  for (var i = 0; i < xs.length; i++) {
+    res.push(f(xs[i], i));
+  }
+  return res;
+}
+
+var objectKeys = Object.keys || function (obj) {
+  var res = [];
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+  }
+  return res;
+};
+
+},{}],9:[function(require,module,exports){
+'use strict';
+
+exports.decode = exports.parse = require('./decode');
+exports.encode = exports.stringify = require('./encode');
+
+},{"./decode":7,"./encode":8}],10:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 2013-01-23
@@ -1888,7 +2067,7 @@ var saveAs = saveAs
 
 if (typeof module !== 'undefined') module.exports = saveAs;
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*!
  * slidr v0.1.0 - A Javascript library for adding slide effects.
  * bchanx.com/slidr
@@ -3039,324 +3218,4 @@ if (typeof module !== 'undefined') module.exports = saveAs;
 
 }));
 
-},{}],9:[function(require,module,exports){
-
-/**
- * Object#toString() ref for stringify().
- */
-
-var toString = Object.prototype.toString;
-
-/**
- * Array#indexOf shim.
- */
-
-var indexOf = typeof Array.prototype.indexOf === 'function'
-  ? function(arr, el) { return arr.indexOf(el); }
-  : function(arr, el) {
-      for (var i = 0; i < arr.length; i++) {
-        if (arr[i] === el) return i;
-      }
-      return -1;
-    };
-
-/**
- * Array.isArray shim.
- */
-
-var isArray = Array.isArray || function(arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-/**
- * Object.keys shim.
- */
-
-var objectKeys = Object.keys || function(obj) {
-  var ret = [];
-  for (var key in obj) ret.push(key);
-  return ret;
-};
-
-/**
- * Array#forEach shim.
- */
-
-var forEach = typeof Array.prototype.forEach === 'function'
-  ? function(arr, fn) { return arr.forEach(fn); }
-  : function(arr, fn) {
-      for (var i = 0; i < arr.length; i++) fn(arr[i]);
-    };
-
-/**
- * Array#reduce shim.
- */
-
-var reduce = function(arr, fn, initial) {
-  if (typeof arr.reduce === 'function') return arr.reduce(fn, initial);
-  var res = initial;
-  for (var i = 0; i < arr.length; i++) res = fn(res, arr[i]);
-  return res;
-};
-
-/**
- * Cache non-integer test regexp.
- */
-
-var isint = /^[0-9]+$/;
-
-function promote(parent, key) {
-  if (parent[key].length == 0) return parent[key] = {};
-  var t = {};
-  for (var i in parent[key]) t[i] = parent[key][i];
-  parent[key] = t;
-  return t;
-}
-
-function parse(parts, parent, key, val) {
-  var part = parts.shift();
-  // end
-  if (!part) {
-    if (isArray(parent[key])) {
-      parent[key].push(val);
-    } else if ('object' == typeof parent[key]) {
-      parent[key] = val;
-    } else if ('undefined' == typeof parent[key]) {
-      parent[key] = val;
-    } else {
-      parent[key] = [parent[key], val];
-    }
-    // array
-  } else {
-    var obj = parent[key] = parent[key] || [];
-    if (']' == part) {
-      if (isArray(obj)) {
-        if ('' != val) obj.push(val);
-      } else if ('object' == typeof obj) {
-        obj[objectKeys(obj).length] = val;
-      } else {
-        obj = parent[key] = [parent[key], val];
-      }
-      // prop
-    } else if (~indexOf(part, ']')) {
-      part = part.substr(0, part.length - 1);
-      if (!isint.test(part) && isArray(obj)) obj = promote(parent, key);
-      parse(parts, obj, part, val);
-      // key
-    } else {
-      if (!isint.test(part) && isArray(obj)) obj = promote(parent, key);
-      parse(parts, obj, part, val);
-    }
-  }
-}
-
-/**
- * Merge parent key/val pair.
- */
-
-function merge(parent, key, val){
-  if (~indexOf(key, ']')) {
-    var parts = key.split('[')
-      , len = parts.length
-      , last = len - 1;
-    parse(parts, parent, 'base', val);
-    // optimize
-  } else {
-    if (!isint.test(key) && isArray(parent.base)) {
-      var t = {};
-      for (var k in parent.base) t[k] = parent.base[k];
-      parent.base = t;
-    }
-    set(parent.base, key, val);
-  }
-
-  return parent;
-}
-
-/**
- * Parse the given obj.
- */
-
-function parseObject(obj){
-  var ret = { base: {} };
-  forEach(objectKeys(obj), function(name){
-    merge(ret, name, obj[name]);
-  });
-  return ret.base;
-}
-
-/**
- * Parse the given str.
- */
-
-function parseString(str){
-  return reduce(String(str).split('&'), function(ret, pair){
-    var eql = indexOf(pair, '=')
-      , brace = lastBraceInKey(pair)
-      , key = pair.substr(0, brace || eql)
-      , val = pair.substr(brace || eql, pair.length)
-      , val = val.substr(indexOf(val, '=') + 1, val.length);
-
-    // ?foo
-    if ('' == key) key = pair, val = '';
-    if ('' == key) return ret;
-
-    return merge(ret, decode(key), decode(val));
-  }, { base: {} }).base;
-}
-
-/**
- * Parse the given query `str` or `obj`, returning an object.
- *
- * @param {String} str | {Object} obj
- * @return {Object}
- * @api public
- */
-
-exports.parse = function(str){
-  if (null == str || '' == str) return {};
-  return 'object' == typeof str
-    ? parseObject(str)
-    : parseString(str);
-};
-
-/**
- * Turn the given `obj` into a query string
- *
- * @param {Object} obj
- * @return {String}
- * @api public
- */
-
-var stringify = exports.stringify = function(obj, prefix) {
-  if (isArray(obj)) {
-    return stringifyArray(obj, prefix);
-  } else if ('[object Object]' == toString.call(obj)) {
-    return stringifyObject(obj, prefix);
-  } else if ('string' == typeof obj) {
-    return stringifyString(obj, prefix);
-  } else {
-    return prefix + '=' + encodeURIComponent(String(obj));
-  }
-};
-
-/**
- * Stringify the given `str`.
- *
- * @param {String} str
- * @param {String} prefix
- * @return {String}
- * @api private
- */
-
-function stringifyString(str, prefix) {
-  if (!prefix) throw new TypeError('stringify expects an object');
-  return prefix + '=' + encodeURIComponent(str);
-}
-
-/**
- * Stringify the given `arr`.
- *
- * @param {Array} arr
- * @param {String} prefix
- * @return {String}
- * @api private
- */
-
-function stringifyArray(arr, prefix) {
-  var ret = [];
-  if (!prefix) throw new TypeError('stringify expects an object');
-  for (var i = 0; i < arr.length; i++) {
-    ret.push(stringify(arr[i], prefix + '[' + i + ']'));
-  }
-  return ret.join('&');
-}
-
-/**
- * Stringify the given `obj`.
- *
- * @param {Object} obj
- * @param {String} prefix
- * @return {String}
- * @api private
- */
-
-function stringifyObject(obj, prefix) {
-  var ret = []
-    , keys = objectKeys(obj)
-    , key;
-
-  for (var i = 0, len = keys.length; i < len; ++i) {
-    key = keys[i];
-    if (null == obj[key]) {
-      ret.push(encodeURIComponent(key) + '=');
-    } else {
-      ret.push(stringify(obj[key], prefix
-        ? prefix + '[' + encodeURIComponent(key) + ']'
-        : encodeURIComponent(key)));
-    }
-  }
-
-  return ret.join('&');
-}
-
-/**
- * Set `obj`'s `key` to `val` respecting
- * the weird and wonderful syntax of a qs,
- * where "foo=bar&foo=baz" becomes an array.
- *
- * @param {Object} obj
- * @param {String} key
- * @param {String} val
- * @api private
- */
-
-function set(obj, key, val) {
-  var v = obj[key];
-  if (undefined === v) {
-    obj[key] = val;
-  } else if (isArray(v)) {
-    v.push(val);
-  } else {
-    obj[key] = [v, val];
-  }
-}
-
-/**
- * Locate last brace in `str` within the key.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function lastBraceInKey(str) {
-  var len = str.length
-    , brace
-    , c;
-  for (var i = 0; i < len; ++i) {
-    c = str[i];
-    if (']' == c) brace = false;
-    if ('[' == c) brace = true;
-    if ('=' == c && !brace) return i;
-  }
-}
-
-/**
- * Decode `str`.
- *
- * @param {String} str
- * @return {String}
- * @api private
- */
-
-function decode(str) {
-  try {
-    return decodeURIComponent(str.replace(/\+/g, ' '));
-  } catch (err) {
-    return str;
-  }
-}
-
-},{}]},{},[4])
-;
+},{}]},{},[5])
