@@ -1,13 +1,22 @@
-markdown: rdiscount
-pygments: true
-permalink: /posts/:title
-auto: true
-rdiscount:
-  extensions: [smart]
+# Dependencies
+markdown:         redcarpet
+pygments:         true
 
-name: Fraser Xu
-url: http://xvfeng.me
-description: A fantastic blog that is fantastic.
-twitter: xvfeng
-github: fraserxu
-gravatar_url: http://en.gravatar.com/userimage/26400562/9cdc30f9fbc7f8f5fd7ac02d2de48f9e.jpeg
+# Permalinks
+permalink:        /posts/:title
+auto: true
+
+# Setup
+title:            xvfeng.me
+tagline:          'fraserxu blog'
+description:      'Thoughts on life and code.'
+url:              http://xvfeng.me
+
+author:
+  name:           'Fraserxu'
+  url:            http://xvfeng.me
+
+paginate:         1
+
+github:
+  repo:           https://github.com/fraserxu/fraserxu.github.io
