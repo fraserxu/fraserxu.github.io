@@ -160,6 +160,24 @@ pre code:after {
   font-size: 16px;
 }
 
+/* Gist
+-------------------------------------------------- */
+blockquote {
+  padding: 0 0 0 20px;
+  margin: 0 3em 20px -2.25em;
+  color: #999;
+  border-left: 8px solid #e5e5e5;
+}
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+img {
+  display: block;
+  margin: 0 0 20px;
+  border-radius: 5px;
+}
+
 /* Links
 -------------------------------------------------- */
 a {
@@ -181,6 +199,30 @@ a:hover {
   margin: 0 auto;
 }
 
+/* Masthead */
+.masthead {
+  color: #888;
+}
+.masthead:after {
+  display: block;
+  content: '----------';
+  margin: 40px 0;
+  color: #ccc;
+}
+.masthead a {
+  color: #333;
+}
+.masthead ul {
+  list-style: none;
+}
+.masthead li {
+  display: inline-block;
+}
+.masthead li + li:before {
+  display: inline-block;
+  content: "\00B7 \00a0";
+  color: #ccc;
+}
 
 /* Posts
 -------------------------------------------------- */
