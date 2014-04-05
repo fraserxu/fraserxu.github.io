@@ -273,7 +273,6 @@ tbody tr:nth-child(odd) th {
 .related {
   padding-top: 2rem;
   padding-bottom: 2rem;
-  border-top: 1px solid #eee;
 }
 .related .posts {
   padding-left: 0;
@@ -292,6 +291,14 @@ tbody tr:nth-child(odd) th {
 }
 .related .posts li a:hover small {
   color: inherit;
+}
+
+.archive {
+  padding-top: 0;
+}
+
+.archive h1 {
+  font-size: 18px;
 }
 
 
