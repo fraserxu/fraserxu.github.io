@@ -298,7 +298,6 @@ tbody tr:nth-child(odd) th {
 body {
   padding: 30px;
   font-family: Menlo, Monaco, monospace;
-  font-size: 14px;
   line-height: 1.5;
   color: #666;
   background-color: #fff;
@@ -312,8 +311,18 @@ header h3 {
   font-size: 18px;
 }
 
-ul.nav li{
+.nav {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-left: 0px;
+}
+
+.nav li {
   display: inline;
+}
+
+.nav li a {
+  color: #777;
 }
 
 .container {
