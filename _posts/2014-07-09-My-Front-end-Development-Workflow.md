@@ -36,6 +36,10 @@ It's not a CSS framework, but just a couple of `SASS` files that build on top of
 
 It's tiny, and very useful, and doesn't take much time to build, every team should have one.
 
+Another point I may miss here is coding style. People may struggle with camelCase class name or  spaces, but I really don't care too much about it. As soon as it works for the team, it works for me. But do notice that once there's a style in the code, everyone should follow it.
+
+However, I do suggest people to try those standards build from large companies, like [style guide from Github](https://github.com/styleguide/css). They exist for large teams, and there must be value in it. 
+
 #### Template Engine
 
 
