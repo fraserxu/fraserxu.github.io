@@ -8,7 +8,7 @@ I happened to read the post [Front-End Technology Stack Round-Up](https://medium
 
 > An experiment to understand the usage, relationships and trends in the massive jungle of modern front-end technologies.
 
-As for myself, I'm trying to move to another company, and sometimes I need to explain to people the front-end development workflow in my current office. So I decide to write this post, to have a brief summary of how I work in [Wiredcraft](http://wiredcraft.com) as a front-end developer.
+Sometimes I need to explain to people the front-end development workflow in my current office. So I decide to write this post, to have a brief summary of how I work in [Wiredcraft](http://wiredcraft.com) as a front-end developer.
 
 It's far from being great, and it's nothing fancy. I just write it down so that sometime later in the future, I know how I work at a certain period of time. In the mean time, to whom that may interest how I work, you should be able to find something here, and I hope it will be helpful to you.
 
@@ -62,5 +62,25 @@ I'm still new to this, and I'd like to share the learning experience with you.
 
 #### Package Manager
 
+When talking about front-end package manager, 'bower' seems to be the first choice. It's true. And in order to find a 3rd party library for use in client-side application, bower is always the best choice, as most library author opting to publish their code with it.
+
+But as I've talked above about modular web development, there's also tools for this. `Component.io` and `npm` are the most famous. Both of them using commonjs syntax, and follow the UNIX philosophy which write tiny module that does one thing well.
+
+There's one tool has to be mentioned when talking about using `npm` in client-side - `[Browserify](http://browserify.org/)`.
+
+> Browserify lets you require('modules') in the browser by bundling up all of your dependencies.
+
 #### Build System
+
+Build system has been an essential part of front-end development. I put it at last, but I think it's the most important part, especially for large size client-side application.
+
+When talking about build system, we often means code minification, testing, compiling or even deploying. `Grunt` has been and still being the most popular build tool, with the largest amount of plugins.
+
+But recently, there's another popular build tool called `Gulp`, which based on nodejs stream, is drawing people's attention. I'm a guy who always want to try new stuff, and it turns out I am right this time.
+
+We had a Grunt based angularjs application which has a lot of task need to be run, and also in order to speed up the development process, we've include livereload in our task. We ended up with a 500+ lines of `Gruntfile`. The size is OK, as there's really a lot of tasks out there.
+
+But when our code become much complex, we felt the build process was really slow. Every time we changed some code, the task took 3-5 seconds to run which is totally unacceptable. So we decide to try `Gulp`.
+
+After trying with gulp, our `Gulpfile` became to 400 lines, but what's more importantly, the time that takes to rebuild is within 2 seconds, which is a huge win for us. Guess how much time we could saved in one day, one week. 
 
