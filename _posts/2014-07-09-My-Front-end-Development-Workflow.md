@@ -48,9 +48,17 @@ But it's totally fine when not using it, as you are not always coding alone, you
 
 #### JS Framework
 
-Choosing a right JavaScript is always a hot topic, and I don't want to start a war here. But as the title of this post, it's the workflow for me, not the best workflow.
+Choosing the right JavaScript framework is always a hot topic, and I don't want to start a war here. But as the title of this post indicate, it's the workflow for me, not the best workflow.
 
+My last 3 projects are all using `Angularjs`, including  a native chat application with `node-webkit`, iOS app with `Ionic` framework. I start working as a front-end developer with `jQuery`, after half a year of experience, I switched to `Angularjs`, and started to know what is a `MVC` framework. Comparing to work with `jQuery`, Angularjs really provide lots of powerful feature to develop single page applications.
 
+`Directive`, `filter`, `two way data-binding`, those are all functions that myself alone can't write on my own. But alone with those power it brings, `Angularjs` force you to learn about those concepts, and you lose the flexibilities of your app.
+
+That's why `frameworkless` single page application, also called modular web development, is becoming popular again. It's come from the group of smart people from the nodejs community. They've been enjoy develop and code management with `npm`, writing code with `commonjs` and share tiny modules that works to the open source community, and now, they want to bring it to the web.
+
+I've been trying to learn to write code in that way for sometime, and I really like this way. I recommend those who interested in this to read the book [Human Javascript](read.humanjavascript.com)($39.00 ebook, but now free to read online) by [@HenrikJoreteg](http://twitter.com/henrikjoreteg).
+
+I'm still new to this, and I'd like to share the learning experience with you.
 
 #### Package Manager
 
