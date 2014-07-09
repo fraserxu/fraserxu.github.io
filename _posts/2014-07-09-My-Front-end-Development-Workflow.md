@@ -40,13 +40,17 @@ Another point I may miss here is coding style. People may struggle with camelCas
 
 However, I do suggest people to try those standards build from large companies, like [style guide from Github](https://github.com/styleguide/css). They exist for large teams, and there must be value in it. 
 
-#### Template Engine
-
-
-
 #### JavaScript(CoffeeScript)
 
+I've been working with pure CoffeeScript in two projects(write CoffeeScript in `/src` folder, and then compile to `/build` folder for browser to use). Comparing using it to JavaScript, your code becomes clean, and also you can benefit from some of the feature from it such as `Class`, `Splats`, that can save you a lot of code than using `prototype`.
+
+But it's totally fine when not using it, as you are not always coding alone, you have teammates to work with, not all of them like `CoffeeScript`. Also, in the world of open source community, JavaScript is still the main stream. And people would more likely to contribute to a JavaScript project than in CoffeeScript.
+
 #### JS Framework
+
+Choosing a right JavaScript is always a hot topic, and I don't want to start a war here. But as the title of this post, it's the workflow for me, not the best workflow.
+
+
 
 #### Package Manager
 
