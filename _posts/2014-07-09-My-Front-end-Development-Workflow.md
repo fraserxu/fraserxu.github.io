@@ -12,22 +12,23 @@ As for myself, I'm trying to move to another company, and sometimes I need to ex
 
 It's far from being great, and it's nothing fancy. I just write it down so that sometime later in the future, I know how I work at a certain period of time. In the mean time, to whom that may interest how I work, you should be able to find something here, and I hope it will be helpful to you.
 
-### Editor / IDE
+#### Editor / IDE
 
 I'm not a big fan of any kind of IDE. They are often too large in size, and may consume large memory usage. But as a front-end developer, there seems not too much benefit that an IDE could bring me compare to a light weight text editor.
 
-The main editor I use on a daily basis is Sublime Text. It's light, fast, yet powerful. I'm not quite good at Vim, but I like it. I use it when I need to work on small project, or on environment that without GUI.
+The main editor I use on a daily basis is `Sublime Text`. It's light, fast, yet powerful. I'm not quite good at `Vim`, but I like it. I use it when I need to work on small project, or on environment that without GUI.
 
-### Version Control System
+#### Version Control System
 
 I believe I'm too young to know any version control system other than **git**.
 
-### CSS
+#### CSS
 
-### JavaScript
+#### JavaScript
 
-### JS Framework
+#### JS Framework
 
-### Package Manager
+#### Package Manager
 
-### Build System
+#### Build System
+
