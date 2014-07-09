@@ -24,7 +24,15 @@ I believe I'm too young to know any version control system other than **git**.
 
 #### CSS
 
-#### JavaScript
+Lots of project begin with a **demo**, or **prototype**. And when you start building a prototype, you want to make it fast. But how? The easiest way is to find the existing solution. Here comes CSS frameworks, **Bootstrap** from twitter is the best example. 40000+ of stars on Github means everything. Me, personally, started using Bootstrap when it was still quite young, I've enjoyed how it help me to build the website I want to build.
+
+But it's not an happy story forever. Once you want something more than a prototype, **Bootstarp** becomes a pain, it's hard to maintain, to develop, and to customize. And if you believe in yourself, you may want to override some of the class from it, but you only ends up with code that you hate even by yourself.
+
+That's a true story for me. I don't write too much CSS in my current company. 
+
+#### Template Engine
+
+#### JavaScript(CoffeeScript)
 
 #### JS Framework
 
