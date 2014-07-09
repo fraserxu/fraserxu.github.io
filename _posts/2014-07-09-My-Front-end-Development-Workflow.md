@@ -28,9 +28,17 @@ Lots of project begin with a **demo**, or **prototype**. And when you start buil
 
 But it's not an happy story forever. Once you want something more than a prototype, **Bootstarp** becomes a pain, it's hard to maintain, to develop, and to customize. And if you believe in yourself, you may want to override some of the class from it, but you only ends up with code that you hate even by yourself.
 
-That's a true story for me. I don't write too much CSS in my current company. 
+That's a true story for me.
+
+I don't write too much CSS now in my current company. But after trying with a lot of different solutions, we end up with a project called [eggshell](https://github.com/Wiredcraft/eggshell).
+
+It's not a CSS framework, but just a couple of `SASS` files that build on top of `node-bourbon`, it defines the basic components that you need in every projects such as `form`, `font`, `button`. In this way, you can simply manage it with your favorite package management tool, and reuse it in other projects. It's not only a time saver, but also make all projects in your company more persistence.
+
+It's tiny, and very useful, and doesn't take much time to build, every team should have one.
 
 #### Template Engine
+
+
 
 #### JavaScript(CoffeeScript)
 
