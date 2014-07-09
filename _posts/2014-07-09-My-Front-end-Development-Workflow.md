@@ -84,3 +84,10 @@ But when our code become much complex, we felt the build process was really slow
 
 After trying with gulp, our `Gulpfile` became to 400 lines, but what's more importantly, the time that takes to rebuild is within 2 seconds, which is a huge win for us. Guess how much time we could saved in one day, one week. 
 
+But this is not the end of the story, I've found the same group of those smart people, they like neither `Grunt` nor `Gulp`, they like `Makefile`. If you are interested in this approach, I suggest you to read this post [Building JavaScript projects with Make](https://blog.jcoglan.com/2014/02/05/building-javascript-projects-with-make/) from James Coglan.
+
+#### Conclusion
+
+As you can see from how I work, there's always things become popular, and new things appear to replace them. But they all come for the same goal, to make the front-end development better. I've been enjoy the process, and I'm still eager to learn new things.
+
+I hope my workflow does make some sense for you. And I'm more than happy to hear the story from you.
