@@ -1,6 +1,6 @@
 ---
 layout: post
-title: React 入门教程 - 编写第一个组件
+title: React入门教程-编写第一个组件
 
 ---
 
@@ -40,11 +40,11 @@ React是由Facebook和Instagram共同维护的一个专注于“前端UI渲染�
 
 这里我们首先需要引入React的代码，你可以通过访问官方文档首页下载，或者点击[这个链接](http://facebook.github.io/react/downloads/react-0.11.1.zip).
 
-除去其他我们常见的HTML标签，这里第一个需要注意的是 `<script type="text/jsx"></script>` ,
-这段代码的目的在于配合 `/*** @jsx React.DOM */` 告诉JSXTransformer去将标签里的内容按照JSX
+除去其他我们常见的HTML标签，这里第一个需要注意的是`<script type="text/jsx"></script>`,
+这段代码的目的在于配合`/*** @jsx React.DOM */`告诉JSXTransformer去将标签里的内容按照JSX
 的语法来进行解析。
 
-然后我们使用React的 `createClass` 方法创建一个组件。这里我们只需定义最基本的 `render` 方法。
+然后我们使用React的`createClass`方法创建一个组件。这里我们只需定义最基本的`render`方法。
 
-最后调用React的 `renderComponent` 方法，查找对应的DOM元素并渲染我们的APP对象。
+最后调用React的`renderComponent`方法，查找对应的DOM元素并渲染我们的APP对象。
 
