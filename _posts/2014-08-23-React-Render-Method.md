@@ -1,6 +1,6 @@
 ---
 layout: post
-title: React入门教程-Render渲染方法
+title: React入门教程 - Render渲染方法
 
 ---
 

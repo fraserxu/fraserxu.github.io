@@ -1,6 +1,6 @@
 ---
 layout: post
-title: React入门教程-Properties简介
+title: React入门教程 - Properties简介
 
 ---
 
