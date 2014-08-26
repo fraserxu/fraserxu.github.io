@@ -304,7 +304,7 @@ tbody tr:nth-child(odd) th {
 
 body {
   padding: 30px;
-  font-family: Menlo, Monaco, monospace;
+  font-family: 'Noto Serif', serif;
   line-height: 1.5;
   color: #666;
   background-color: #fff;
