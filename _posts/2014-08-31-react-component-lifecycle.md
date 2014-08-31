@@ -115,4 +115,4 @@ componentWillUnmount:function(){
 
 主要用来执行一些必要的清理任务。例如清除`setTimeout`等函数，或者任意的在`componentDidMount`创建的DOM元素。
 
-ref: http://facebook.github.io/react/docs/component-specs.html
+ref: [http://facebook.github.io/react/docs/component-specs.html](http://facebook.github.io/react/docs/component-specs.html)
