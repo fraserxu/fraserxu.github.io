@@ -9,39 +9,19 @@ title: React入门教程 - 组件生命周期
 
 #### 组件加载: componentWillMount
 
-`componentWillMount`会在组件`render`之前执行，并且永远都只执行一次。
+```
+componentWillMount()
+```
 
-```
-/** @jsx React.DOM */
-var APP = React.createClass({
-  componentWillMount: function() {
-    console.log('This message will only show once!')
-  },
-  render: function() {
-    console.log('Calling render method.')
-    return (
-      <div>I'm a lonely div.</div>
-    )
-  }
-})
-```
+`componentWillMount`会在组件`render`之前执行，并且永远都只执行一次。
 
 由于这个方法始终只执行一次，所以如果在这里定义了`setState`方法之后，页面永远都只会在加载前更新一次。
 
-```
-componentWillMount: function() {
-  console.log('This message will only show once!')
-  this.setState({items: {name: 'test'}})
-},
-render: function() {
-  console.log('Calling render method.')
-  return (
-    <div>I'm a lonely div. {this.state.items.name}</div>
-  )
-}
-```
-
 #### 组件加载: componentDidMount
+
+```
+componentDidMount()
+```
 
 这个方法会在组件加载完毕之后立即执行。在这个时候之后组件已经生成了对应的DOM结构，可以通过`this.getDOMNode()`来进行访问。
 
@@ -134,3 +114,5 @@ componentWillUnmount:function(){
 ```
 
 主要用来执行一些必要的清理任务。例如清除`setTimeout`等函数，或者任意的在`componentDidMount`创建的DOM元素。
+
+ref: http://facebook.github.io/react/docs/component-specs.html
