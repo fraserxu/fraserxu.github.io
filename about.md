@@ -1,5 +1,6 @@
 ---
 layout: page
+title: About
 ---
 
 Hi, I&rsquo;m **Fraser**, I’m a web developer, a blogger, a translator, and also <del>a student</del>(not anymore since June 2013).

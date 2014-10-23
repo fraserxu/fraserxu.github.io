@@ -1,22 +1,26 @@
 # Dependencies
 markdown:         redcarpet
-pygments:         true
+highlighter:         pygments
 
 # Permalinks
-permalink:        /posts/:title
-auto: true
+permalink:        pretty
+relative_permalinks: true
 
 # Setup
 title:            fraserxu.me
-tagline:          'fraserxu blog'
+tagline:          'Thoughts on life and code.'
 description:      'Thoughts on life and code.'
 url:              https://fraserxu.me
+baseurl:          /
 
 author:
   name:           'Fraserxu'
   url:            https://fraserxu.me
+  email:          xvfeng123@gmail.com
 
-paginate:         1
+paginate:         5
 
 github:
   repo:           https://github.com/fraserxu/fraserxu.github.io
+
+version:          1.0.0
