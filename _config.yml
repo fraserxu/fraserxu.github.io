@@ -10,11 +10,11 @@ auto: true
 title:            xvfeng.me
 tagline:          'fraserxu blog'
 description:      'Thoughts on life and code.'
-url:              http://xvfeng.me
+url:              https://fraserxu.me
 
 author:
   name:           'Fraserxu'
-  url:            http://xvfeng.me
+  url:            https://fraserxu.me
 
 paginate:         1
 
