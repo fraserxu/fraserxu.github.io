@@ -43,5 +43,5 @@ title: About
 * [Magic bus](https://www.magicbus.io/) An Ionic based hybrid application(*In Beta*)[Angular.js, ng-cordova...]
 * [csviz](http://csviz.github.io/csviz) Open data map with csv file[React.js, Flux, D3...]
 
-*I love cats and a girl, here name is Vigi.*
+*I love cats and a girl, her name is Vigi.*
 
