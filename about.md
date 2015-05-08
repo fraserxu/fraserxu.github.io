@@ -3,18 +3,45 @@ layout: page
 title: About
 ---
 
-Hi, I&rsquo;m **Fraser**, I’m a web developer, a blogger, a translator, and also <del>a student</del>(not anymore since June 2013).
+* Name: Fraser Xu
+* Date of Birth: 10-09-1991
+* Github: [@fraserxu](https://github.com/fraserxu)
+* Twitter: [@fraserxu](https://twitter.com/fraserxu)
+* Description: A self-taught JavaScript Developer, major in English Language and Culture, currently work and live in Shanghai, China.
 
-I&rsquo;m currently working as a web developer [@Wiredcraft](http://wiredcraft.com), and switching myself from back-end to font-end as needed.
+### My skills
+* **Front-end MVC frameworks**(React.js, Angular.js)
+* **Data visualization**(D3.js, Chartist.js, Leaflet.js, Mapbox.js)
+* **Cross platform development**(NW.js, React-native, Ionic)
+* **Tools**(Browserify, Makefile, npm, webpack)
+* **Others**(WebRTC, XMPP, Nodejs)
 
-While studying English language as my major at college, I liked programming language much more and considered myself more of a web developer. I’ve been learning web development by myself for about 2 years and now I’m having fun playing with JavaScript, HTML5 and CSS3.
+### My working experience
 
-Before I graduated from college, I worked as interners in company called [Geekpark](http://geekpark.net) where I learnt a lot on product management and UX design, and grow some knowledge standing on a point of prduct manager.
+* **2013~** Senior Front-end Developer at [Wiredcraft](http://wiredcraft.com/)
+* **2012-2013** Front-end intern at [Wiredcraft](http://wiredcraft.com/)
+* **2011-2012** Front-end intern at [Geekpark](http://geekpark.net/)
 
-After I came to wiredcraft which is more of a foreign company where half of the employee including the boss are foreigners, I get a English communication atmosphere which it's exactly what I've been lacking in college as a English major for almost 4 years, and of course now my oral English is much better than the time before I came here. Besides that, what I think more important to my programmer career is how we code.
+### My open source contribution
 
-And it's here that I know about git, and really start using github([almost for everything here](http://wiredcraft.com/posts/2013/09/18/github-for-everything.html)). After that I enter a better world which is called open source community, where people share their code freely and contribute to each other. Now I'm proudly been part of it.
+* Co-organiser of 2015 JSConf China - [ShenJS](http://2015.jsconf.cn/)
+* [Shanghai JavaScript Meetup](http://www.meetup.com/Shanghai-JavaScript-Meetup/) *the biggest monthly JS event in Shanghai*
+* Co-founder of [react-china](http://react-china.org/) community
 
-Here, we using a lot of cool stuffs. Nodejs for the back-end, Angularjs as the main front-end framework, and xmpp for making realtime applications and even video chat in the browser with WebRTC.
+### My project
 
-If you are interested in some of my experience, you can find me on [Twitter](https://twitter.com/fraserxu), [Github](https://github.com/fraserxu) and [Weibo](http://weibo.com/xvfeng123), or simply drop me an email: xvfeng123 AT gmail DOT com.
+#### Open source
+* [data-canvas](http://fraserxu.me/data-canvas/) - An app to visualize the data from [data-canvas](http://datacanvas.org/sense-your-city/) project
+* [gifme](https://github.com/fraserxu/gifme) - The easiest way to make and share a gif, right in the browser.
+* [jingfm-cli](https://github.com/fraserxu/jingfm-cli) - start playing music from your awesome command line with jingfm-cli
+* [react-chartist](https://github.com/fraserxu/react-chartist) - React component for Chartist.js
+* [ng-textcomplete](https://github.com/fraserxu/ng-textcomplete) - Github like autocompleter in any textarea for angularjs.
+* More on [github](https://github.com/fraserxu)
+
+#### Client
+* Front-end architecture for the voter registration system for Myanmar(**WIP**)[React.js, NW.js, D3.js, Browserify, Immutable.js...]
+* [Magic bus](https://www.magicbus.io/) An Ionic based hybrid application(*In Beta*)[Angular.js, ng-cordova...]
+* [csviz](http://csviz.github.io/csviz) Open data map with csv file[React.js, Flux, D3...]
+
+*I love cats and a girl, here name is Vigi.*
+
