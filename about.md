@@ -20,7 +20,7 @@ A self-taught JavaScript Developer, major in English Language and Culture, curre
 
 ### My working experience
 
-* **2013 ~ ** Senior Front-end Developer at [Wiredcraft](http://wiredcraft.com/)
+* **2013 ~** Senior Front-end Developer at [Wiredcraft](http://wiredcraft.com/)
 * **2012 - 2013** Front-end intern at [Wiredcraft](http://wiredcraft.com/)
 * **2011 - 2012** Front-end intern at [Geekpark](http://geekpark.net/)
 
