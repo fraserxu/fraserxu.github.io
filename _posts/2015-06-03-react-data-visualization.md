@@ -440,15 +440,15 @@ That's it. This approach works well for most case in our product. But once you h
 
 ### Disclaimer
 
-This post is not telling you that you should use `React` and `D3`, but a way to demostrate that the possibility of using them together and potentialy help speed up your development workflow.
+This post is not telling you that you should use `React` and `D3` together, but a way to demostrate that the possibility of using them together and potentially help speed up your development workflow.
 
-### Conclustion
+### Conclusion
 
 **Choose the way you like!**
 
 ### Further reading
 
-The following links are what I check while preparing this post and you should check them out.
+The following links are what I checked while preparing this post and you should check them out.
 
 * [Scalable Data Visualisation](https://docs.google.com/presentation/d/1DDlR6Hd03G2HcIjHzEkUf9GhX-bbaDyIl0CTUNsO1rI/pub?start=false&loop=false&delayms=60000&slide=id.p)
 * [Integrating D3.js visualizations in a React app](http://nicolashery.com/integrating-d3js-visualizations-in-a-react-app/)
