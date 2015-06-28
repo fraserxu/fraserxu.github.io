@@ -1,7 +1,7 @@
 ---
 title: PDF Generation On The Web 
 layout: post
-published: true
+published: false
 ---
 
 The Wiredcraft team is working on the Myanmar voter registration system during the past half year. One part of the systems we are building is a native Windows application that needs to work offline and generate a PDF from a list of voters.
