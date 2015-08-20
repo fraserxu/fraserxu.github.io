@@ -200,7 +200,7 @@ The first thing we try for this approach is to use the `window.open()` method to
 </script>
 ```
 
-This could solve the second problem, but the UX is even worse. We have two open two unnecessary windows just to generate one PDF. The UX is totally unacceptable. Plus the user may want to generate serval PDF at the same time, which means we have to open lots of windows.
+This could solve the second problem, but the UX is even worse. We have too open two unnecessary windows just to generate one PDF. The UX is totally unacceptable. Plus the user may want to generate serval PDF at the same time, which means we have to open lots of windows.
 
 Is there a way we can skip all of the windows?
 
@@ -241,5 +241,9 @@ To use it, you just need to run `npm i -g electron-pdf electron-prebuilt`, and i
 $ electron-pdf ~/Desktop/fraserxu.html ~/Desktop/fraserxu.pdf
 ```
 
-Below is a screenshot of how it works. For more information and usage please check the github repo here [electron-pdf](https://github.com/fraserxu/electron-pdf) and fire any issue you might have and pull request is more than welcome!
+Below is a screenshot of how it works.
+
+![electron-pdf](https://cloud.githubusercontent.com/assets/1183541/9372796/6dc1089e-4715-11e5-8850-10dd9542aff8.gif)
+
+For more information and usage please check the github repo here [electron-pdf](https://github.com/fraserxu/electron-pdf) and fire any issue you might have and pull request is more than welcome!
 
