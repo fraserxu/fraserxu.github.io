@@ -1,10 +1,10 @@
 ---
 title: PDF Generation On The Web
 layout: post
-published: false
+published: true
 ---
 
-The Wiredcraft team is working on the Myanmar voter registration system during the past half year. One part of the systems we are building is a native Windows application that needs to work offline and generate a PDF from a list of voters.
+The Wiredcraft team is working on the Myanmar voter registration system during the past half year. One part of the systems we are building is a **native Windows** application that needs to work **offline** and **generate PDF** from a list of voters in **Myanmar language**.
 
 ### There're serval challenges we need to tackle:
 
@@ -167,6 +167,8 @@ I believe there surely are use case for Pandoc, like professional publication, o
 
 ### `printToPDF` from Electron
 
+**The browser is the best(not even one of) tool to render HTML properly, that's what I've been loving it so far.**
+
 While trying the approaches above, we already know that Chrome already have a way to print and generate PDF from within the browser.
 
 The `window.print()` method opens the Print Dialog to print the current document.
@@ -229,13 +231,15 @@ win.webContents.on("did-finish-load", function() {
 
 The code here just open a new `BrowserWindow` in the background, and then render the template, once the content is fully loaded, it print the content to PDF and finally we can write it to the local file system.
 
-If you think we are done and time for a beer then you are wrong.
+### Introducing [electron-pdf](https://github.com/fraserxu/electron-pdf)
 
-The Electron has two kind of process, **main process** and **render process**. For a typical Electron application, you have a `main.js` defined in your `package.json` and the `main.js` is usually your main process.
+To make the whole workflow effortless, I've written a simple cli tool with nodejs named `electron-pdf`.
 
+To use it, you just need to run `npm i -g electron-pdf electron-prebuilt`, and if everything go well, you can start to use it by calling
 
+```
+$ electron-pdf ~/Desktop/fraserxu.html ~/Desktop/fraserxu.pdf
+```
 
-
-
-
+Below is a screenshot of how it works. For more information and usage please check the github repo here [electron-pdf](https://github.com/fraserxu/electron-pdf) and fire any issue you might have and pull request is more than welcome!
 
