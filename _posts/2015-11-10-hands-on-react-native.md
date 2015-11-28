@@ -1,7 +1,7 @@
 ---
 title: Building a Native Soundcloud Android app with React Native and Redux
 layout: post
-published: false
+published: true
 ---
 
 Seven months ago, React Native for iOS came out. I built the [ShenJS app](https://facebook.github.io/react-native/docs/android-setup.html#content) for the [2015 JSConf China](http://2015.jsconf.cn) the day after the release. It was more out of curiosity than anything else.
