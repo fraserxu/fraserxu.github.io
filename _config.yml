@@ -12,7 +12,7 @@ description:      'Thoughts on life and code.'
 url:              https://fraserxu.me
 baseurl:          /
 gems: [jekyll-paginate]
-paginate: 5
+paginate: 3
 paginate_path: "page:num"
 
 author:
