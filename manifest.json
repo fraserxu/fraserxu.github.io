@@ -1,0 +1,11 @@
+{
+  "name": "Fraser Xu",
+  "scope": "/",
+  "icons": [{
+    "src": "/public/img/icon.png",
+    "sizes": "144x144",
+    "type": "image/png"
+  }],
+  "display": "standalone",
+  "start_url": "/"
+}
