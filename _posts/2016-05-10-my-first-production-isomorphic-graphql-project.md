@@ -135,14 +135,13 @@ And **those consumptions are wrong**.
 
 All those metrics we have are not facing really user, it's behind a domain hosted on herokuapp, and we're the only user who knows about it. And once we resolved the DNS to use the new domain(which takes about 1 hour to take effect), we started to get some new metrics from our tracking services. It was all good at the beginning.
 
-But not until a few hours later, we found that the memory usage of the server keeps going up. Event thoguh I was almost sure there's a memory leak somewhere in our code, but with this **shinny** new stack I had no idea could go wrong as there's so many possibilities. Normally you could just revert your code to a previous working commit and do a re-deploy, but we don't even have one.
+But not until a few hours later, we found that the memory usage of the server keeps going up. Event thoguh I was almost sure there's a memory leak somewhere in our code, but with this **shinny** new stack I had no idea what could go wrong as there's so many possibilities. Normally you could just revert your code to a previous working commit and do a re-deploy, but we don't even have one.
 
 I ended up sitting in front of my laptop the whole Friday night to watch the memory usage goes up and I restarted again, and wait until it goes up to restarted it.
 
 The other day with the help from some of my nodejs developer friends, I added a process management tool called `pm2` which restart the server when memory goes to a `max_memory_restart` limit so I could have time to have a rest and time to figure out what's going on.
 
 But `pm2` could not help fix the memory leak issue, so the rest of the week I started to look at nodejs profiling solutions and find out a few technicals to find potential memory leak. It's not the topic of this post but all I can tell is that is hard. Especially you have such a setup with isomporphic babel compiled code base.
-
 
 ### Have you find out the memory leak yet?
 
