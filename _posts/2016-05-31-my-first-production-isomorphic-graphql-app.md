@@ -37,19 +37,20 @@ into trouble.
 The new project has a few requirements:
 
 * Server side rendering for progressive enhanced experience so the page could work for user without JavaScript
-* SEO, we are mainly a e-commerical website, so SEO is the number one priority
+* SEO, we are mainly an e-commerical website, so SEO is the number one priority
 * The app needs to talk to a couple of micro-services, and tokens are usually stored on the server for safety reasons
 * UI state should persiste from url, not only for SEO, but also for a better user experience
 * Fast interation time, to move fast and delivery better user experience
+* Improve performance, the short time we delivery page to user, the longer we can keep the user on the website
 
 There are also other requirements which are not for business, and most of them are acutally for a better developer experience.
 
 * Babel. For use a couple of handy syntax today that are only available in future browser
 * Webpack. For compiling assets, hot code load, uglify
-* Modern JavaScript libraries that have best practises in the community
+* Modern JavaScript libraries that have best practices in the community
 
 With the above requirements, I started from the simplest hello world express server, and deployed it to Heroku. The other day I
-started to build the static part of the page, and need to render from the server side, so I installed `React` and render a few of
+started to build the static part of the page, and since the code need to render from the server side, I installed `React` and render a few of
 Header and Footer component and rendered them on server with `React.renderToString`.
 
 Since I also need to have other pages like `404`, `500`, I added `React-Router` to have the router support. It works super fine
