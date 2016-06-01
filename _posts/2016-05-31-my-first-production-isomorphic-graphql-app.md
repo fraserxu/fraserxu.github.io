@@ -126,13 +126,13 @@ Luciky, with enough time spend on thoese probelms and wonderful resources over t
 
 ### After shipping it to production
 
-Yes, please hold on and stop telling me **you should never ship something to production on Friday**. This is something we all know as developer, there's a few consumptions that we've made when ship the code:
+Yes, please hold on and stop telling me **you should never ship something to production on Friday**. This is something we all know as developer, there's a few assumptions that we've made when ship the code:
 
 * We have run the code on our staging and production for 1-2 weeks
 * we have complete monitoring services that show the metrics of the app
 * It's a shinny new stack and we can't wait unitl next week to ship it
 
-And **those consumptions are wrong**.
+And **those assumptions are wrong**.
 
 All those metrics we have are not facing really user, it's behind a domain hosted on herokuapp, and we're the only user who knows about it. And once we resolved the DNS to use the new domain(which takes about 1 hour to take effect), we started to get some new metrics from our tracking services. It was all good at the beginning.
 
