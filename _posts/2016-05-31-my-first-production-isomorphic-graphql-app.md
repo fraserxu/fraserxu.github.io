@@ -82,17 +82,17 @@ And along with them I will need to have 3 webpack configs.
 
 And another `.babelrc` which include the babel plugins.
 
-I've used Webpack in serval projects, but it stills feels very hard to make it right each time I do it again. I'm using lots of plugins for different purposes in my configs, but to be honest I can say I know what exactly what those individual plugs does in the project. Some of them are inherits from `Babel 5` and I may know what it does, but others may be something totally new only in `Babel 6`, I don't have the time to go through each of them.
+I've used Webpack in serval projects, but it stills feels very hard to make it right each time I do it again. I'm using lots of plugins for different purposes in my configs, but to be honest I can't say I know what exactly what those individual plugs does in the project. Some of them are inherits from `Babel 5` and I may know what it does, but others may be something totally new only in `Babel 6`, I don't have the time to go through each of them.
 
 It's actually an OK experience so far, I managed to have a nice working demo. And I could show my manager what I've achieved so far in a rather short time.
 
 The next step is to be able to load dynamic content through our api-gateway. Since we only want to keep the token for internally use and don't want to expose it in the browser, we had the idea to build a simple "proxy" server which re-direct the request from the browser and then pass the request
 together with token saved on the server to make a request to the api-gateway.
 
-In addition, if a page need to load multple results, we could make them together into one and have a custom api endpoint. For example if we want to
+In addition, if a page need to load multiple results, we could make them together into one and have a custom api endpoint. For example if we want to
 get the stats `total user` and `total items` on the page, normally we will need to do two individual requests, but with the "proxy api" we could do this via a `/api/stats` so the browser only need to make one request. This could help user on a mobile device since network request on the server side is relativly realible and faster.
 
-When we get to this stage, we came to the idea of trying our GraphQL, because the "proxy" server is similar to what GraphQL wants to achieve. Given that this is an experienment project so we decide to try it out.
+When we get to this stage, we came to the idea of trying our GraphQL, because the "proxy" server is similar to what GraphQL wants to achieve, and in the future we will have more complex logic, the benefit of small pageload and flexible query lanuage could help us in long term. Given that this is an experienment project so we decide to try it out.
 
 To get started, we need to install the following packages, and it still kind of making sense to do so:
 
