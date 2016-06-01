@@ -162,4 +162,4 @@ So here's a few lessons I learned from this project:
 
 Last but not least, I'm not a super fan of hearing people complaining about `JavaScript fatigue`, this post isn't about complain them at all. It's all my personal fault to use a library at a wrong time(or too many libraries at the same time). And it's also the reason I explain setp by step why I bring in those libraies into my project.
 
-It is because whenever I get a problem, those tools, build by lovely open source developers, who spend their spare time, to build those tools to solve our probelms for free, they are the one making our life easier. If it happens to solve your problem, always appreciate their hard work for that, if it doesn't, build you own.
+It is because whenever I get a problem, those tools, build by lovely open source developers who spend their spare time, helping us solve our probelms for free, they are the one making our life easier. If it happens to solve your problem, always appreciate their hard work for that, if it doesn't, build you own.
