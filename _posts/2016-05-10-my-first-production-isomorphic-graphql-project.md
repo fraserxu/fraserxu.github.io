@@ -1,7 +1,6 @@
 ---
 title: My First Production Isomorphic React Graphql Project
 layout: post
-published: false
 ---
 
 ### The story
@@ -20,7 +19,7 @@ Before I started to share my experience, I'd like to give an overview of the arc
 |                         | Library |
 | ----------------------  | -------------------
 |  View                   | React         |
-|  (UI) State management  | send-actions(like Redux, but simper)  |
+|  State management       | send-actions(like Redux, but simper)  |
 |  Date fetching          | GraphQL, Relay|
 |  Route                  | React-Router  |
 |  Assets serving         | Webpack       |
@@ -29,9 +28,9 @@ Before I started to share my experience, I'd like to give an overview of the arc
 
 #### Why the current stack?
 
-I've worked on lots of different projects before with different stack. And I always have the idea to **not use
+I've worked on lots of different projects before with different stacks. And I always have the idea to **not use
 any boilerplate** in mind when start a new project. Boileplates are usually built by and for people with different
-requirements for a project, and none of them are identical to the one you are trying to solve. So usually I will
+requirements for a project, and none of them are identical to the one you are trying to build. So usually I will
 only keep a list of well maintained boilerplate project, and only use them as a reference when my own stack gets
 into trouble.
 
@@ -41,6 +40,7 @@ The new project has a few requirements:
 * SEO, we are mainly a e-commerical website, so SEO is the number one priority
 * The app needs to talk to a couple of micro-services, and tokens are usually stored on the server for safety reasons
 * UI state should persiste from url, not only for SEO, but also for a better user experience
+* Fast interation time, to move fast and delivery better user experience
 
 There are also other requirements which are not for business, and most of them are acutally for a better developer experience.
 
@@ -49,14 +49,14 @@ There are also other requirements which are not for business, and most of them a
 * Modern JavaScript libraries that have best practises in the community
 
 With the above requirements, I started from the simplest hello world express server, and deployed it to Heroku. The other day I
-need to build the static part of the page, and need to render from the server side, so I installed `React` and render a few of
+started to build the static part of the page, and need to render from the server side, so I installed `React` and render a few of
 Header and Footer component and rendered them on server with `React.renderToString`.
 
-Since I also need to have other pages for `404`, `500`, I added `React-Router` to have the router support. It works super fine
+Since I also need to have other pages like `404`, `500`, I added `React-Router` to have the router support. It works super fine
 and I love what I did so far.
 
 But I think I forget to mention the setup I need to make in order to make those 3 libraries to work for both browser and server.
-Here's the depencies list:
+Here's the dependencies list:
 
 * babel-cli
 * babel-core
@@ -81,17 +81,15 @@ And along with them I will need to have 3 webpack configs.
 
 And another `.babelrc` which include the babel plugins.
 
-I've done Webpack config for a while and for serval projects already, but it
-stills feels very hard to make it right. Although I'm using some of the plugins in my configs, to be honest I don't know what exactly what those individual plugs does in the project. Some of them are inherits from `Babel 5`, and others may be something new only in `Babel 6`, I don't have time to go through each of them. And I fix all the error message by re-running the build and install each missing plugins.
+I've used Webpack in serval projects, but it stills feels very hard to make it right each time I do it again. I'm using lots of plugins for different purposes in my configs, but to be honest I can say I know what exactly what those individual plugs does in the project. Some of them are inherits from `Babel 5` and I may know what it does, but others may be something totally new only in `Babel 6`, I don't have the time to go through each of them.
 
-It's an OK experience so far, I managed to have a nice working demo. And I could show my manager what I've achieved so far in a rather short time.
+It's actually an OK experience so far, I managed to have a nice working demo. And I could show my manager what I've achieved so far in a rather short time.
 
 The next step is to be able to load dynamic content through our api-gateway. Since we only want to keep the token for internally use and don't want to expose it in the browser, we had the idea to build a simple "proxy" server which re-direct the request from the browser and then pass the request
 together with token saved on the server to make a request to the api-gateway.
 
 In addition, if a page need to load multple results, we could make them together into one and have a custom api endpoint. For example if we want to
-get the stats `total user` and `total items` on our website, normally we should do two individual requests, but we could do this via a `/api/stats`
-so the browser only to make one request. This could help user on a mobile device since network request on the server side is relativly realible and faster.
+get the stats `total user` and `total items` on the page, normally we will need to do two individual requests, but with the "proxy api" we could do this via a `/api/stats` so the browser only need to make one request. This could help user on a mobile device since network request on the server side is relativly realible and faster.
 
 When we get to this stage, we came to the idea of trying our GraphQL, because the "proxy" server is similar to what GraphQL wants to achieve. Given that this is an experienment project so we decide to try it out.
 
@@ -103,31 +101,63 @@ To get started, we need to install the following packages, and it still kind of 
 * graphql-relay
 * babel-relay-plugin
 
-Oh, wait! Since we are using `react-router`, we need a tool to fetch the data based on the current router so we could fetch all the data before rendering the page:
+Oh, wait! Since we are using `react-router`, we also need a tool to fetch the data based on the current router so we could fetch all the data before rendering the page:
 
 * react-router-realay
 
-And, we are not done yet. We are doing isomporphic, so we still need to do something to make them work on server side, let's install some other plugins:
+And, last but not least. We are doing <del>isomporphic</del>universal app, so we still need to do something to make them work on server side, let's install some more other plugins:
 
 * isomorphic-relay
 * isomporphic-relay-router
 
 Okay, I think we are almost there, we'e got almost every tool we need. We're going to ship the product to production.
 
-Here's a few problem I got that does not belong to any of the framework itself, but how to make them work together. I've heard lots of success stories for isomorphic application, I've also heard people talking how awesome GraphQL and Relay is for data fetching. But I can hardly find any live example of using all of them together:
+With this setup, I got problems that does not belong to any of the framework itself, but how to **make them work together**. I've heard lots of success stories for isomorphic application, I've also heard people talking how awesome GraphQL and Relay is for data fetching. But I can hardly find any live example of using all of them together.
+
+Here's a few pain point I met while hooking them together:
 
 * `process.env` management for application running in different environment(dev, ci, staging, production), most boilerplate project do not cover that
-* `process.env`managemetn for isomporphic applications, using them with Webpack is trick because it's mostly design for client-side code, and covert varibles from varibles to strings and then back to variables to work them work for both env
-* debug with source map support for code compiled for different environment
-* the `.babelrc` file that varies on different environmetn
+* `process.env`management for isomporphic applications, using them with Webpack is tricky because it's mostly design for client-side code, and convert varibles from varibles to strings and then back to variables to make them work for both env
+* debug with source map support for compiled code for different environment
+* the `.babelrc` file that varies on different environment
 
-Luciky, with enough time spend on thoese probelms and wonderful resources over the internet, I managed to make the whole stack working.
+Luciky, with enough time spend on thoese probelms and wonderful resources over the internet, I managed to make the whole stack working, and we shipped it to production last Friday.
 
 ### After shipping it to production
 
+Yes, please hold on and stop telling me **you should never ship something to production on Friday**. This is something we all know as developer, there's a few consumptions that we've made when ship the code:
+
+* We have run the code on our staging and production for 1-2 weeks
+* we have complete monitoring services that show the metrics of the app
+* It's a shinny new stack and we can't wait unitl next week to ship it
+
+And **those consumptions are wrong**.
+
+All those metrics we have are not facing really user, it's behind a domain hosted on herokuapp, and we're the only user who knows about it. And once we resolved the DNS to use the new domain(which takes about 1 hour to take effect), we started to get some new metrics from our tracking services. It was all good at the beginning.
+
+But not until a few hours later, we found that the memory usage of the server keeps going up. Event thoguh I was almost sure there's a memory leak somewhere in our code, but with this **shinny** new stack I had no idea could go wrong as there's so many possibilities. Normally you could just revert your code to a previous working commit and do a re-deploy, but we don't even have one.
+
+I ended up sitting in front of my laptop the whole Friday night to watch the memory usage goes up and I restarted again, and wait until it goes up to restarted it.
+
+The other day with the help from some of my nodejs developer friends, I added a process management tool called `pm2` which restart the server when memory goes to a `max_memory_restart` limit so I could have time to have a rest and time to figure out what's going on.
+
+But `pm2` could not help fix the memory leak issue, so the rest of the week I started to look at nodejs profiling solutions and find out a few technicals to find potential memory leak. It's not the topic of this post but all I can tell is that is hard. Especially you have such a setup with isomporphic babel compiled code base.
+
+
+### Have you find out the memory leak yet?
+
+The answer is no. After discussed with the team, we decided to remove all GraphQL and Relay related code. And here's the result:
+
+<img width="1225" alt="memory usage" src="https://cloud.githubusercontent.com/assets/1183541/15707752/d07b5b4c-283d-11e6-838b-4b719d637a1b.png">
+
+We all know that is toally unnecessary for the app, we were keeping it to prepare the code for the future.
 
 ### Conclusion
 
-I'm not a super fan of hearing people talking about `JavaScript fatigue`, the main reason I explain why I bring in those libraies into my project is because when I get a problem, I need a tool to help me solve the problem. And thanks to the hard work of thoese tool makers, they spend their spare time to make those tools for us for free, they are making our life easier. Me persoanlly also have lots of open source code pushed to npm and Github, and I can't tell how much I've leared from it.
+So here's a few lessons I learned from this project:
 
-But let's go back and think about the probelm we're trying to solve.
+* **Don't ship code to production on Friday, for whatever reason**.
+* You can **plan big**, but **always start small**.
+* There's no reason should stop you from trying new libraries, but **chose the right timing**.
+
+Last but not least, I'm not a super fan of hearing people complaining about `JavaScript fatigue`, this post isn't complain at all. It's all my personal fault to use a library at a wrong time(or too many libraries at the same time). And it's also the reason I explain setp by step of why I bring in those libraies into my project. It is because when I get a problem, those tool, build by lovely open source developers, thanks to their hard work, spending their spare time, to build those tools to solve our probelms for free, they are the one making our life easier.
