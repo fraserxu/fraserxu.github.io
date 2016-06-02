@@ -14,7 +14,7 @@ self.addEventListener('install', function (event) {
     caches.open(staticCacheName).then(function(cache) {
       return cache.addAll([
         {% for page in site.html_pages %}
-          '{{ page.url }}',
+          "{{ page.url }}",
         {% endfor %}
         '/public/css/lanyon.css',
         '/public/css/poole.css',
@@ -22,7 +22,7 @@ self.addEventListener('install', function (event) {
         '/public/js/index.js',
         '/public/js/serviceworker-cache-polyfill.js',
         {% for post in site.posts %}
-          '{{ post.url }}',
+          "{{ post.url }}",
         {% endfor %}
         '//fonts.lug.ustc.edu.cn/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400',
       ])
