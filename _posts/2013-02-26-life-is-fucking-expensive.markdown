@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Life's fucking expensive
+title: Life is fucking expensive
 category: posts
 ---
 
