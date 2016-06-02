@@ -1,6 +1,6 @@
 ## My blog host on github
 
-## [fraserxu.me](http://fraserxu.me)
+## [fraserxu.me](https://fraserxu.me)
 
 Install dependencies
 
