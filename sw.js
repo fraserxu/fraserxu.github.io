@@ -13,17 +13,11 @@ self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(staticCacheName).then(function(cache) {
       return cache.addAll([
-        {% for page in site.html_pages %}
-          "{{ page.url }}",
-        {% endfor %}
         '/public/css/lanyon.css',
         '/public/css/poole.css',
         '/public/css/syntax.css',
         '/public/js/index.js',
         '/public/js/serviceworker-cache-polyfill.js',
-        {% for post in site.posts %}
-          "{{ post.url }}",
-        {% endfor %}
         '//fonts.lug.ustc.edu.cn/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400',
       ])
     })
