@@ -1,7 +1,6 @@
 ---
 title: My First Production Isomorphic React Graphql Project
 layout: post
-published: false
 ---
 
 ### The story
