@@ -6101,7 +6101,7 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
   box-shadow: 0 0 15px -1px rgba(0, 0, 0, 0.4);
   position: relative;
   z-index: 2;
-  min-height: 100%;
+  /*min-height: 100%;*/
 }
 @media (min-width: 1025px) {
   .page__canvas {
