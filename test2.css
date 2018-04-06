@@ -199,16 +199,6 @@ html {
   line-height: 1.5;
   color: #545454;
 }
-@media (max-width: 1024px) {
-  html {
-    height: 100%;
-  }
-}
-@media (max-width: 1024px) {
-  body {
-    height: 100%;
-  }
-}
 blockquote,
 dl,
 dd,
