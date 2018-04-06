@@ -4639,11 +4639,7 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
   margin-left: auto;
   margin-right: auto;
 }
-.grid-container:after {
-  content: '';
-  display: table;
-  clear: both;
-}
+
 @media (min-width: 1025px) {
   .grid-container.-layout-videohive {
     max-width: 95%;
