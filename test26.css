@@ -1,0 +1,52 @@
+.is-visually-hidden,
+.js .is-visually-hidden--js {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+.hidden,
+.is-hidden {
+  display: none !important;
+}
+.no-js .is-hidden--no-js {
+  display: none !important;
+}
+.js .is-hidden--js {
+  display: none !important;
+}
+.is-loading {
+  background-image: url(https://public-assets.envato-static.com/assets/common/pagination_loader-8c6a70768e3d8135995dbd27307cb84e746eaa49ac295ffff4a86c3dec16a4e5.gif);
+  background-position: center center;
+  background-repeat: no-repeat;
+  height: 30px;
+}
+.is-pjax-loading {
+  opacity: 0.4;
+}
+.is-disabled-interaction,
+.is-disabled-loading {
+  position: relative;
+}
+.is-disabled-interaction:before,
+.is-disabled-loading:before {
+  content: '';
+  background-color: white;
+  opacity: 0.4;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+}
+.is-disabled-interaction {
+  cursor: default;
+}
+.is-disabled-loading {
+  cursor: wait;
+}
