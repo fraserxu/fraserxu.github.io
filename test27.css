@@ -1,3 +1,23 @@
+@media (max-width: 1024px) {
+  .is-hidden-tablet-and-below {
+    display: none !important;
+  }
+}
+@media (max-width: 568px) {
+  .is-hidden-phone {
+    display: none !important;
+  }
+}
+@media (min-width: 569px) {
+  .is-hidden-tablet-and-above {
+    display: none !important;
+  }
+}
+@media (min-width: 1025px) {
+  .is-hidden-desktop {
+    display: none !important;
+  }
+}
 .is-visually-hidden,
 .js .is-visually-hidden--js {
   border: 0;
