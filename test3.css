@@ -4633,15 +4633,17 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
   }
 }
 .grid-container {
-  *zoom: 1;
   max-width: 1004px;
-  _width: 1004px;
   padding-left: 10px;
   padding-right: 10px;
   margin-left: auto;
   margin-right: auto;
 }
-
+.grid-container:after {
+  content: '';
+  display: table;
+  clear: both;
+}
 @media (min-width: 1025px) {
   .grid-container.-layout-videohive {
     max-width: 95%;
