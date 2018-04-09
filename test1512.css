@@ -5003,82 +5003,8 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
   background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
   background-position: -380px -382px;
 }
-.header-mini__logo--3docean {
-  background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
-  background-position: -285px -196px;
-  width: 119px;
-  height: 40px;
-}
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
-  .header-mini__logo--3docean {
-    background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos_2x-9d4c1aed6af878af3434ed8e071e8db5645cfc36c1f00bed445ffaf39055b771.png);
-    background-size: 577px 449px;
-    background-position: -285px -196px;
-    height: 40px;
-    width: 119px;
-  }
-}
-.header-mini__logo--audiojungle {
-  background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
-  background-position: -163px -272px;
-  width: 143px;
-  height: 40px;
-}
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
-  .header-mini__logo--audiojungle {
-    background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos_2x-9d4c1aed6af878af3434ed8e071e8db5645cfc36c1f00bed445ffaf39055b771.png);
-    background-size: 577px 449px;
-    background-position: -163px -272px;
-    height: 40px;
-    width: 143px;
-  }
-}
-.header-mini__logo--codecanyon {
-  background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
-  background-position: 0px -332px;
-  width: 147px;
-  height: 40px;
-}
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
-  .header-mini__logo--codecanyon {
-    background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos_2x-9d4c1aed6af878af3434ed8e071e8db5645cfc36c1f00bed445ffaf39055b771.png);
-    background-size: 577px 449px;
-    background-position: 0px -332px;
-    height: 40px;
-    width: 147px;
-  }
-}
-.header-mini__logo--graphicriver {
-  background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
-  background-position: -167px -332px;
-  width: 139px;
-  height: 40px;
-}
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
-  .header-mini__logo--graphicriver {
-    background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos_2x-9d4c1aed6af878af3434ed8e071e8db5645cfc36c1f00bed445ffaf39055b771.png);
-    background-size: 577px 449px;
-    background-position: -167px -332px;
-    height: 40px;
-    width: 139px;
-  }
-}
-.header-mini__logo--photodune {
-  background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
-  background-position: -444px 0px;
-  width: 133px;
-  height: 40px;
-}
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
-  .header-mini__logo--photodune {
-    background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos_2x-9d4c1aed6af878af3434ed8e071e8db5645cfc36c1f00bed445ffaf39055b771.png);
-    background-size: 577px 449px;
-    background-position: -444px 0px;
-    height: 40px;
-    width: 133px;
-  }
-}
-.header-mini__logo--themeforest {
+
+/*.header-mini__logo--themeforest {
   background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
   background-position: 0px -272px;
   width: 143px;
@@ -5099,5 +5025,5 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
   width: 114px;
   height: 40px;
 }
-
+*/
 
