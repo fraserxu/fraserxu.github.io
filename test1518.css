@@ -4978,7 +4978,7 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
 .header-mini__button--account {
   right: 10px;
 }
-/*.header-mini__logo--envato-market,
+.header-mini__logo--envato-market,
 .header-mini__logo--3docean,
 .header-mini__logo--audiojungle,
 .header-mini__logo--codecanyon,
@@ -4987,8 +4987,7 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
 .header-mini__logo--themeforest,
 .header-mini__logo--videohive {
   display: inline-block;
-  text-indent: -9999px;
-}*/
+}
 .header-mini__logo--envato-market {
   height: 40px;
   width: 192px;
