@@ -4954,13 +4954,13 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
   > .header-logo-account__sundry-dropdown {
   display: block;
 }
-/*.header-mini {
+.header-mini {
   background-color: #262626;
   height: 40px;
   position: relative;
   text-align: center;
 }
-.header-mini__button--categories,
+/*.header-mini__button--categories,
 .header-mini__button--account {
   font-size: 13px;
   position: absolute;
