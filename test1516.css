@@ -5080,9 +5080,8 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
     width: 133px;
   }
 }
-.header-mini__logo--themeforest {
+/*.header-mini__logo--themeforest {
   background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
-  background-size: 577px 449px;
   background-position: 0px -272px;
   width: 143px;
   height: 40px;
@@ -5095,7 +5094,7 @@ input[type='email'].footer-subscribe__input--short:focus::-webkit-input-placehol
     height: 40px;
     width: 143px;
   }
-}
+}*/
 .header-mini__logo--videohive {
   background-image: url(https://public-assets.envato-static.com/assets/generated_sprites/logos-fe03b7c781b271c0149660a18d0f0638c0cfac658ce36deb3175c96dd4d17fd2.png);
   background-position: -150px -68px;
